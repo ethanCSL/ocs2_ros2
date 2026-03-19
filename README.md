@@ -1,5 +1,44 @@
 # OCS2_ROS2 Toolbox
 
+## Quick Start For This Fork
+
+This fork adds a `g5_openarm` workflow on top of the ROS 2 OCS2 port, including:
+
+- `g5_openarm` robot description, launch files, and RViz config
+- a switchable PinnZoo-backed wheel-based dynamics backend for `ocs2_mobile_manipulator`
+- a ready-to-use `g5_openarm_pinnzoo.launch.py` entrypoint
+
+Companion PinnZoo repository:
+
+- `https://github.com/ethanCSL/PinnZoo.git`
+- branch: `g7-openarm`
+
+Fastest path to run `g5_openarm`:
+
+```bash
+cd ~/ros2_ws/src
+git clone https://github.com/ethanCSL/ocs2_ros2.git
+git clone -b g7-openarm https://github.com/ethanCSL/PinnZoo.git ~/PinnZoo
+cd ocs2_ros2
+git submodule update --init --recursive
+cd ~/PinnZoo
+mkdir -p build
+cd build
+cmake ..
+cmake --build . --target g7_openarm_quat
+cd ~/ros2_ws
+source /opt/ros/humble/setup.bash
+colcon build --packages-select \
+  ocs2_mobile_manipulator \
+  ocs2_mobile_manipulator_ros \
+  g5_openarm_description \
+  g5_openarm_ocs2 \
+  g5_openarm_ros
+source ~/ros2_ws/install/setup.bash
+export PINNZOO_LIBRARY_PATH=~/PinnZoo/build/libg7_openarm_quat.so
+ros2 launch g5_openarm_ros g5_openarm_pinnzoo.launch.py
+```
+
 ## 1. Summary
 
 OCS2_ROS2 is developed based on [OCS2](https://github.com/leggedrobotics/ocs2), it was refactored to be compatible with ROS2 and modern cmake.
