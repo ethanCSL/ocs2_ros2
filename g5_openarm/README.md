@@ -1,54 +1,288 @@
-# g5_openarm Project Guide
+# g5_openarm OCS2 + PinnZoo Integration Guide
 
-This workspace contains the `g5_openarm` description, OCS2 task files, and ROS 2 launch entrypoints for the wheel-based dual-arm mobile manipulator. The project now supports two runtime modes:
+
+## 1. Overview
+
+The goal of this integration is not just to display the robot in RViz. The full pipeline is:
+
+- `g5_openarm.urdf` is used consistently by `robot_state_publisher`, Pinocchio, and OCS2
+- the `WheelBasedMobileManipulator` dynamics can switch between native OCS2 dynamics and a PinnZoo-generated dynamics library
+- `g5_openarm_pinnzoo.launch.py` starts RViz, the interactive marker, MPC, and the dummy MRT loop together
+- the interactive marker controls the gripper center, not a wrist frame or a single finger link
+
+There are currently two runtime modes:
 
 - standard OCS2 wheel-based dynamics
-- PinnZoo-backed wheel-based dynamics selected through `task_pinnzoo.info`
+- PinnZoo-backed wheel-based dynamics
 
-All launch entrypoints share the same RViz layout and interactive end-effector target workflow.
+The switch is done through the task file, not by hardcoding a different C++ build:
 
-## Package layout
+- [`task.info`](g5_openarm_ocs2/config/g5_openarm/task.info): native OCS2 dynamics
+- [`task_pinnzoo.info`](g5_openarm_ocs2/config/g5_openarm/task_pinnzoo.info): PinnZoo backend enabled
+
+Important note:
+
+- the OCS2 code changes described in Section 3 are only needed for the PinnZoo backend
+- the default flow still works with the original OCS2/Pinocchio-based dynamics path
+
+For experienced OCS2 users:
+
+- if a new robot still fits the existing `ocs2_mobile_manipulator` model, the usual work is `URDF + task file + launch/config`; upstream OCS2 source changes are typically unnecessary
+- this project changes OCS2 because it adds a new dynamics backend, not just a new robot
+- the added OCS2 code is limited to loading a PinnZoo-generated `.so`, mapping reduced OCS2 state/input to the full PinnZoo model, and switching between native and PinnZoo-backed dynamics at runtime
+
+## 2. Package Layout
 
 ### `g5_openarm_description`
 
-- `urdf/g5_openarm.urdf`: robot model used by `robot_state_publisher`, Pinocchio, and RViz
-- `meshes/`: visual and collision meshes referenced by the URDF
+Purpose:
 
-Edit this package when link geometry, meshes, frame names, or joint names change.
+- stores the robot URDF
+- stores all visual and collision meshes
+- provides the shared robot description for `robot_state_publisher`, RViz, and Pinocchio
+
+Main files:
+
+- [`g5_openarm_description/urdf/g5_openarm.urdf`](g5_openarm_description/urdf/g5_openarm.urdf)
+- [`g5_openarm_description/CMakeLists.txt`](g5_openarm_description/CMakeLists.txt)
+- [`g5_openarm_description/package.xml`](g5_openarm_description/package.xml)
+- `g5_openarm_description/meshes/*`
 
 ### `g5_openarm_ocs2`
 
-- `config/g5_openarm/task_startup.info`: conservative startup tuning
-- `config/g5_openarm/task.info`: normal tuning
-- `config/g5_openarm/task_pinnzoo.info`: PinnZoo-backed tuning and library path
-- `auto_generated/g5_openarm/`: generated OCS2 helper library folder used by `libFolder`
+Purpose:
 
-This package now acts as a clean config asset package. The actual PinnZoo runtime integration lives in `ocs2_mobile_manipulator`, while `g5_openarm_ocs2` only owns task/config data and generated-library assets.
+- stores the `g5_openarm` task and configuration files
+- stores the `auto_generated` OCS2 helper-library folder used by `libFolder`
+- no longer contains the PinnZoo adapter implementation itself; the runtime PinnZoo integration now lives in upstream [`ocs2_mobile_manipulator`](../basic%20examples/ocs2_mobile_manipulator)
+
+Main files:
+
+- [`g5_openarm_ocs2/config/g5_openarm/task.info`](g5_openarm_ocs2/config/g5_openarm/task.info)
+- [`g5_openarm_ocs2/config/g5_openarm/task_pinnzoo.info`](g5_openarm_ocs2/config/g5_openarm/task_pinnzoo.info)
+- [`g5_openarm_ocs2/auto_generated/g5_openarm/README.md`](g5_openarm_ocs2/auto_generated/g5_openarm/README.md)
+- [`g5_openarm_ocs2/CMakeLists.txt`](g5_openarm_ocs2/CMakeLists.txt)
+- [`g5_openarm_ocs2/package.xml`](g5_openarm_ocs2/package.xml)
 
 ### `g5_openarm_ros`
 
-- `launch/g5_openarm.launch.py`: compatibility entry, defaults to `task_startup.info`
-- `launch/g5_openarm_startup.launch.py`: explicit startup-safe entry
-- `launch/g5_openarm_normal.launch.py`: explicit normal-tuning entry
-- `launch/g5_openarm_pinnzoo.launch.py`: PinnZoo-backed entry
-- `launch/include/g5_openarm_bringup.launch.py`: shared internal bring-up
-- `rviz/g5_openarm.rviz`: RViz config with robot model, trajectories, and interactive markers
+Purpose:
 
-All top-level launch files now expose the same user-facing arguments:
+- provides the `g5_openarm` ROS 2 launch entrypoints
+- provides the RViz layout
+- wires the `g5_openarm` URDF, task file, and interactive-marker parameters into `ocs2_mobile_manipulator_ros`
 
-- `rviz`
-- `debug`
-- `urdfFile`
-- `taskFile`
-- `libFolder`
-- `rvizconfig`
-- `enableJoystick`
-- `enableAutoPosition`
-- `enableDynamicFrame`
+Main files:
 
-## Build
+- [`g5_openarm_ros/launch/g5_openarm.launch.py`](g5_openarm_ros/launch/g5_openarm.launch.py)
+- [`g5_openarm_ros/launch/g5_openarm_pinnzoo.launch.py`](g5_openarm_ros/launch/g5_openarm_pinnzoo.launch.py)
+- [`g5_openarm_ros/launch/include/g5_openarm_bringup.launch.py`](g5_openarm_ros/launch/include/g5_openarm_bringup.launch.py)
+- [`g5_openarm_ros/rviz/g5_openarm.rviz`](g5_openarm_ros/rviz/g5_openarm.rviz)
+- [`g5_openarm_ros/CMakeLists.txt`](g5_openarm_ros/CMakeLists.txt)
+- [`g5_openarm_ros/package.xml`](g5_openarm_ros/package.xml)
 
-Rebuild the OCS2 mobile manipulator packages together with `g5_openarm`, because the PinnZoo dynamics backend lives in `ocs2_mobile_manipulator`:
+## 3. OCS2 Code Changes
+
+This section describes the changes made to upstream OCS2 packages outside the `g5_openarm` folder.
+All links point to the exact files in this fork so that users can inspect the implementation directly.
+
+### 3.0 Code Change Map
+
+Main upstream files changed for the PinnZoo integration:
+
+- [`ocs2_mobile_manipulator/include/ocs2_mobile_manipulator/dynamics/PinnzooInterface.h`](../basic%20examples/ocs2_mobile_manipulator/include/ocs2_mobile_manipulator/dynamics/PinnzooInterface.h): shared-library wrapper API and task-file settings
+- [`ocs2_mobile_manipulator/src/dynamics/PinnzooInterface.cpp`](../basic%20examples/ocs2_mobile_manipulator/src/dynamics/PinnzooInterface.cpp): config parsing, environment-variable expansion, and `dlopen` / `dlsym` loading
+- [`ocs2_mobile_manipulator/include/ocs2_mobile_manipulator/dynamics/PinnzooWheelBasedMobileManipulatorDynamics.h`](../basic%20examples/ocs2_mobile_manipulator/include/ocs2_mobile_manipulator/dynamics/PinnzooWheelBasedMobileManipulatorDynamics.h): PinnZoo-backed wheel-based dynamics class declaration
+- [`ocs2_mobile_manipulator/src/dynamics/PinnzooWheelBasedMobileManipulatorDynamics.cpp`](../basic%20examples/ocs2_mobile_manipulator/src/dynamics/PinnzooWheelBasedMobileManipulatorDynamics.cpp): reduced-to-full state mapping and flow-map evaluation through PinnZoo
+- [`ocs2_mobile_manipulator/src/MobileManipulatorInterface.cpp`](../basic%20examples/ocs2_mobile_manipulator/src/MobileManipulatorInterface.cpp): runtime backend switch between native OCS2 and PinnZoo
+- [`ocs2_mobile_manipulator/CMakeLists.txt`](../basic%20examples/ocs2_mobile_manipulator/CMakeLists.txt): build-system wiring for the new sources and `dl`
+- [`ocs2_mobile_manipulator_ros/src/MobileManipulatorTarget.cpp`](../basic%20examples/ocs2_mobile_manipulator_ros/src/MobileManipulatorTarget.cpp): safer launch-parameter handling for the interactive target
+- [`ocs2_mobile_manipulator_ros/launch/include/mobile_manipulator.launch.py`](../basic%20examples/ocs2_mobile_manipulator_ros/launch/include/mobile_manipulator.launch.py): shared launch behavior used by the interactive-target flow
+
+### 3.1 Changes in `ocs2_mobile_manipulator`
+
+#### Added [`PinnzooInterface.h`](../basic%20examples/ocs2_mobile_manipulator/include/ocs2_mobile_manipulator/dynamics/PinnzooInterface.h)
+
+What it does:
+
+- defines `PinnzooSettings`
+- declares `loadPinnzooSettings()`
+- wraps the generated PinnZoo shared library interface
+- exposes config-order, velocity-order, and torque-order lookup utilities
+
+This file is the C++ wrapper interface around the external PinnZoo `.so`.
+
+#### Added [`PinnzooInterface.cpp`](../basic%20examples/ocs2_mobile_manipulator/src/dynamics/PinnzooInterface.cpp)
+
+What it does:
+
+- reads the `pinnzoo { ... }` block from the task file
+- loads the generated PinnZoo symbols with `dlopen` / `dlsym`
+- resolves the following generated entry points:
+  - `dynamics_wrapper`
+  - `velocity_kinematics_wrapper`
+  - `get_config_order`
+  - `get_vel_order`
+  - `get_torque_order`
+  - `get_urdf_path`
+- expands `PINNZOO_LIBRARY_PATH` and other environment-variable references in `libraryPath`
+
+This is what makes the task file portable instead of hardcoding a local absolute path.
+
+#### Added [`PinnzooWheelBasedMobileManipulatorDynamics.h`](../basic%20examples/ocs2_mobile_manipulator/include/ocs2_mobile_manipulator/dynamics/PinnzooWheelBasedMobileManipulatorDynamics.h)
+
+What it does:
+
+- declares the PinnZoo-backed wheel-based dynamics class
+- defines the interface for mapping the reduced OCS2 state/input to the full PinnZoo state
+
+#### Added [`PinnzooWheelBasedMobileManipulatorDynamics.cpp`](../basic%20examples/ocs2_mobile_manipulator/src/dynamics/PinnzooWheelBasedMobileManipulatorDynamics.cpp)
+
+What it does:
+
+- maps the reduced OCS2 state
+  - `x, y, yaw, L_1..L_7, R_1..R_7`
+  into the full floating-base PinnZoo state
+- converts the mobile-base heading into a quaternion
+- fixes the joints that are removed from the reduced model
+- uses `velocity_kinematics_wrapper` to build the flow map used by OCS2
+- validates the generated model dimensions and wrapper availability at startup
+
+This file is the core of the PinnZoo backend integration.
+
+#### Modified [`MobileManipulatorInterface.cpp`](../basic%20examples/ocs2_mobile_manipulator/src/MobileManipulatorInterface.cpp)
+
+What changed:
+
+- reads `pinnzoo.enabled`
+- only allows the PinnZoo backend for `WheelBasedMobileManipulator`
+- when `pinnzoo.enabled == true`
+  - constructs `PinnzooWheelBasedMobileManipulatorDynamics`
+  - wraps it with `SystemDynamicsLinearizer`
+- when `pinnzoo.enabled == false`
+  - keeps using the original `WheelBasedMobileManipulatorDynamics`
+
+This preserves the original OCS2 behavior while adding a switchable alternative backend.
+
+#### Modified [`CMakeLists.txt`](../basic%20examples/ocs2_mobile_manipulator/CMakeLists.txt)
+
+What changed:
+
+- compiles the new PinnZoo dynamics sources into `ocs2_mobile_manipulator`
+- links `dl`
+
+### 3.2 Changes in `ocs2_mobile_manipulator_ros`
+
+#### Modified [`MobileManipulatorTarget.cpp`](../basic%20examples/ocs2_mobile_manipulator_ros/src/MobileManipulatorTarget.cpp)
+
+What changed:
+
+- added safer handling for `enableJoystick`
+- added safer handling for `enableAutoPosition`
+- added fallback handling when the parameter type is not what the node expects
+
+Why this matters:
+
+- without this change, the interactive target could crash under some launch parameter combinations
+- with this change, the target node is more robust and the interactive marker is less likely to die at startup
+
+#### Modified [`mobile_manipulator.launch.py`](../basic%20examples/ocs2_mobile_manipulator_ros/launch/include/mobile_manipulator.launch.py)
+
+What changed:
+
+- added display-aware terminal-prefix handling
+- preserved the wiring of `enableJoystick` and `enableAutoPosition`
+
+This is not `g5_openarm`-specific, but it affects the behavior of the shared interactive-target flow.
+
+## 4. What Each `g5_openarm` File Does
+
+This section only covers files under [`g5_openarm`](.).
+
+### 4.1 `g5_openarm_description`
+
+#### [`g5_openarm_description/urdf/g5_openarm.urdf`](g5_openarm_description/urdf/g5_openarm.urdf)
+
+Defines:
+
+- the full kinematic tree of the dual-arm mobile manipulator
+- `AMR_base_link`
+- the fixed `openarm_base_link`
+- the left and right 7-DoF arms
+- the left and right gripper finger joints
+- the virtual tool-center frames `L_ee_link` and `R_ee_link`
+
+
+
+
+### 4.2 `g5_openarm_ocs2`
+
+#### [`g5_openarm_ocs2/config/g5_openarm/task.info`](g5_openarm_ocs2/config/g5_openarm/task.info)
+
+Purpose:
+
+- standard OCS2 task file
+- uses the native OCS2 wheel-based dynamics
+- defines reduced-model joint order, costs, limits, and end-effector frames
+
+#### [`g5_openarm_ocs2/config/g5_openarm/task_pinnzoo.info`](g5_openarm_ocs2/config/g5_openarm/task_pinnzoo.info)
+
+Purpose:
+
+- PinnZoo-enabled task file
+- sets `pinnzoo.enabled true`
+- defines the generated wrapper symbol names
+- defines `baseHeight`
+- references the external PinnZoo `.so` through `PINNZOO_LIBRARY_PATH`
+
+This is the single switch that enables the PinnZoo backend.
+
+### 4.3 `g5_openarm_ros`
+
+#### [`g5_openarm_ros/launch/g5_openarm.launch.py`](g5_openarm_ros/launch/g5_openarm.launch.py)
+
+Purpose:
+
+- standard `g5_openarm` launch entrypoint
+- uses [`task.info`](g5_openarm_ocs2/config/g5_openarm/task.info) by default
+- passes `rviz`, `debug`, `urdfFile`, `taskFile`, `libFolder`, and interactive-target parameters downward
+
+#### [`g5_openarm_ros/launch/g5_openarm_pinnzoo.launch.py`](g5_openarm_ros/launch/g5_openarm_pinnzoo.launch.py)
+
+Purpose:
+
+- PinnZoo launch entrypoint
+- uses [`task_pinnzoo.info`](g5_openarm_ocs2/config/g5_openarm/task_pinnzoo.info) by default
+- this is the main public launch file for the PinnZoo-backed workflow
+
+#### [`g5_openarm_ros/launch/include/g5_openarm_bringup.launch.py`](g5_openarm_ros/launch/include/g5_openarm_bringup.launch.py)
+
+Purpose:
+
+- shared bringup used by the top-level launch files
+- starts:
+  - `robot_state_publisher`
+  - `mobile_manipulator_mpc_node`
+  - `mobile_manipulator_dummy_mrt_node`
+  - `mobile_manipulator_target`
+- wires `enableJoystick`, `enableAutoPosition`, and `enableDynamicFrame` into the interactive-target node
+
+## 5. Reduced-Order OCS2 Model Assumptions
+
+- `manipulatorModelType = 1`
+- `baseFrame = AMR_base_link`
+- `eeFrame = L_ee_link`
+- `eeFrame1 = R_ee_link`
+- reduced state order:
+  - `x, y, yaw, L_1..L_7, R_1..R_7`
+- reduced input order:
+  - `forward velocity, yaw velocity, L_1..L_7 velocity, R_1..R_7 velocity`
+- wheel joints and gripper finger joints are removed from the reduced OCS2 model
+- the wheel and gripper joints still exist in the full PinnZoo model, but they are fixed during reduced-to-full state mapping
+
+## 6. Build and Launch
+
+### Build
 
 ```bash
 cd /root/ocs2_ws
@@ -60,17 +294,10 @@ AMENT_PYTHON_EXECUTABLE=/usr/bin/python3 PYTHON_EXECUTABLE=/usr/bin/python3 \
     g5_openarm_description \
     g5_openarm_ocs2 \
     g5_openarm_ros
-```
-
-After building:
-
-```bash
 source /root/ocs2_ws/install/setup.bash
 ```
 
-## PinnZoo setup
-
-Clone and build PinnZoo separately:
+### Build PinnZoo
 
 ```bash
 cd ~/workspace
@@ -80,44 +307,89 @@ mkdir -p build
 cd build
 cmake ..
 cmake --build . --target g7_openarm_quat
-```
-
-Export the generated shared library path before launching the PinnZoo workflow:
-
-```bash
 export PINNZOO_LIBRARY_PATH=~/workspace/PinnZoo/build/libg7_openarm_quat.so
 ```
 
-## Launch
+### Launch
 
-
-Auto-generated launch:
+Standard OCS2 dynamics:
 
 ```bash
 ros2 launch g5_openarm_ros g5_openarm.launch.py
 ```
 
-PinnZoo launch:
+PinnZoo-backed dynamics:
 
 ```bash
 ros2 launch g5_openarm_ros g5_openarm_pinnzoo.launch.py
 ```
 
-## Current model assumptions
+## 7. URDF Changes
 
-- `manipulatorModelType = 1`
+This section lists the URDF-level changes that are important for the OCS2 integration.
+
+### 7.1 Fixed mounting between the mobile base and the arm body
+
+Key items:
+
+- `openarm_base_link`
+- `openarm_base_link_joint`
+- `chest_link`
+- `chest_link_joint`
+
+Why it was added:
+
+- to mount the upper-body arm assembly onto `AMR_base_link`
+- to keep the full robot as a single URDF tree
+- to align the robot description with `baseFrame = AMR_base_link`
+
+### 7.2 Kept the gripper finger joints in the full URDF
+
+Key joints:
+
+- `gripper_LL_joint`
+- `gripper_LR_joint`
+- `gripper_RL_joint`
+- `gripper_RR_joint`
+
+Why this matters:
+
+- the gripper geometry is preserved for visualization and the full model
+- the finger joints are still removed from the reduced OCS2 optimization model
+
+### 7.3 Added virtual tool-center frames
+
+Key links and joints:
+
+- `L_ee_link`
+- `L_ee_joint`
+- `R_ee_link`
+- `R_ee_joint`
+
+Why this matters:
+
+- a fixed tool-center frame is placed at the center of each gripper opening
+- `eeFrame` / `eeFrame1` now point to the gripper center instead of a wrist link or a single finger
+- the interactive marker controls the actual gripper center
+
+Current offsets:
+
+- left arm: `L_link7 -> L_ee_link`, `xyz="0 -0.03175 -0.119"`
+- right arm: `R_link7 -> R_ee_link`, `xyz="0 0.03175 -0.119"`
+
+### 7.4 Frame naming aligned with the task files
+
+The URDF naming is aligned with the task configuration:
+
 - `baseFrame = AMR_base_link`
 - `eeFrame = L_ee_link`
 - `eeFrame1 = R_ee_link`
-- reduced state order is `x, y, yaw, L_1..L_7, R_1..R_7`
-- wheel joints and gripper finger joints are removed from the reduced OCS2 model
 
-The URDF provides `L_ee_link` and `R_ee_link` as tool-center frames, so dragging the interactive target controls the gripper center rather than a wrist link or a single finger.
+This alignment is required for Pinocchio frame lookup, end-effector constraints, and interactive-marker targeting to work consistently.
 
-## PinnZoo notes
+## 8. Important Usage Notes
 
-- `task_pinnzoo.info` enables the PinnZoo backend with `pinnzoo.enabled true`
-- the external PinnZoo dynamics library path is read from `PINNZOO_LIBRARY_PATH`
-- `libFolder` still points to `g5_openarm_ocs2/auto_generated/g5_openarm`, which is the OCS2 helper-library folder, not the PinnZoo `.so`
-
-If the external PinnZoo library location changes, update `PINNZOO_LIBRARY_PATH` before launch.
+- if you want the PinnZoo backend, you must export `PINNZOO_LIBRARY_PATH` first
+- [`task_pinnzoo.info`](g5_openarm_ocs2/config/g5_openarm/task_pinnzoo.info) expects the external PinnZoo `.so`, not the `auto_generated/g5_openarm` folder
+- if RViz shows the robot but no draggable marker, check whether `mobile_manipulator_target` started correctly
+- if the interactive marker should control the gripper center, `eeFrame` / `eeFrame1` must remain `L_ee_link` / `R_ee_link`
