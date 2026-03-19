@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>g5_openarm_ocs2</name>
+  <version>0.0.1</version>
+  <description>OCS2 config package for g5_openarm launch, task, and generated-library assets.</description>
+
+  <maintainer email="you@example.com">g5_openarm</maintainer>
+  <license>BSD-3-Clause</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

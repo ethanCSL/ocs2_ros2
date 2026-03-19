@@ -63,7 +63,7 @@ mkdir -p ros2_ws/src
 
 ```bash
 cd ~/ros2_ws/src
-git clone https://github.com/legubiao/ocs2_ros2
+git clone https://github.com/ethanCSL/ocs2_ros2.git
 cd ocs2_ros2
 git submodule update --init --recursive
 ```
@@ -74,6 +74,46 @@ git submodule update --init --recursive
 cd ~/ros2_ws
 rosdep install --from-paths src --ignore-src -r -y
 ```
+
+### 2.4 g5_openarm + PinnZoo quick start
+
+This fork includes a `g5_openarm` integration that can switch the wheel-based mobile manipulator dynamics from the native OCS2 implementation to a PinnZoo-generated shared library.
+
+Clone and build PinnZoo separately:
+
+```bash
+cd ~
+git clone -b g7-openarm https://github.com/ethanCSL/PinnZoo.git
+cd PinnZoo
+mkdir -p build
+cd build
+cmake ..
+cmake --build . --target g7_openarm_quat
+```
+
+Then build this workspace:
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/humble/setup.bash
+AMENT_PYTHON_EXECUTABLE=/usr/bin/python3 PYTHON_EXECUTABLE=/usr/bin/python3 \
+  colcon build --packages-select \
+    ocs2_mobile_manipulator \
+    ocs2_mobile_manipulator_ros \
+    g5_openarm_description \
+    g5_openarm_ocs2 \
+    g5_openarm_ros
+source ~/ros2_ws/install/setup.bash
+```
+
+Export the PinnZoo library path and launch:
+
+```bash
+export PINNZOO_LIBRARY_PATH=~/PinnZoo/build/libg7_openarm_quat.so
+ros2 launch g5_openarm_ros g5_openarm_pinnzoo.launch.py
+```
+
+The detailed robot-specific guide is in `g5_openarm/README.md`.
 
 ## 3. Basic Examples
 

@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "ocs2_mobile_manipulator/MobileManipulatorInterface.h"
 
+#include <ocs2_core/dynamics/SystemDynamicsLinearizer.h>
 #include <ocs2_core/initialization/DefaultInitializer.h>
 #include <ocs2_core/misc/LoadData.h>
 #include <ocs2_core/misc/LoadStdVectorOfPair.h>
@@ -59,6 +60,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ocs2_mobile_manipulator/dynamics/DefaultManipulatorDynamics.h"
 #include "ocs2_mobile_manipulator/dynamics/FloatingArmManipulatorDynamics.h"
 #include "ocs2_mobile_manipulator/dynamics/FullyActuatedFloatingArmManipulatorDynamics.h"
+#include "ocs2_mobile_manipulator/dynamics/PinnzooInterface.h"
+#include "ocs2_mobile_manipulator/dynamics/PinnzooWheelBasedMobileManipulatorDynamics.h"
 #include "ocs2_mobile_manipulator/dynamics/WheelBasedMobileManipulatorDynamics.h"
 
 // Boost
@@ -140,10 +143,24 @@ namespace ocs2::mobile_manipulator
 
         bool usePreComputation = true;
         bool recompileLibraries = true;
+        const auto pinnzooSettings = loadPinnzooSettings(taskFile);
         std::cerr << "\n #### Model Settings:";
         std::cerr << "\n #### =============================================================================\n";
         loadData::loadPtreeValue(pt, usePreComputation, "model_settings.usePreComputation", true);
         loadData::loadPtreeValue(pt, recompileLibraries, "model_settings.recompileLibraries", true);
+        if (pinnzooSettings.enabled && modelType != ManipulatorModelType::WheelBasedMobileManipulator)
+        {
+            throw std::runtime_error("PinnZoo backend is currently implemented only for WheelBasedMobileManipulator.");
+        }
+        if (pinnzooSettings.enabled)
+        {
+            std::cerr << " #### pinnzoo.enabled: true\n";
+            std::cerr << " #### pinnzoo.libraryPath: " << pinnzooSettings.libraryPath << '\n';
+        }
+        else
+        {
+            std::cerr << " #### pinnzoo.enabled: false\n";
+        }
         std::cerr << " #### =============================================================================\n";
 
         // Default initial state
@@ -239,9 +256,27 @@ namespace ocs2::mobile_manipulator
             }
         case ManipulatorModelType::WheelBasedMobileManipulator:
             {
-                problem_.dynamicsPtr = std::make_unique<WheelBasedMobileManipulatorDynamics>(
-                    manipulatorModelInfo_, "dynamics", libraryFolder,
-                    recompileLibraries, true);
+                if (pinnzooSettings.enabled)
+                {
+                    auto pinnzooDynamics = std::make_unique<PinnzooWheelBasedMobileManipulatorDynamics>(
+                        manipulatorModelInfo_, pinnzooSettings, removeJointNames);
+                    std::cerr << "[MobileManipulatorInterface] Using PinnZoo-backed wheel-based dynamics from: "
+                              << pinnzooDynamics->getPinnzooInterface().settings().libraryPath << std::endl;
+                    if (!pinnzooDynamics->getPinnzooInterface().generatedUrdfPath().empty())
+                    {
+                        std::cerr << "[MobileManipulatorInterface] PinnZoo generated URDF path: "
+                                  << pinnzooDynamics->getPinnzooInterface().generatedUrdfPath() << std::endl;
+                    }
+
+                    problem_.dynamicsPtr = std::make_unique<SystemDynamicsLinearizer>(
+                        std::move(pinnzooDynamics), true, false, 1e-6);
+                }
+                else
+                {
+                    problem_.dynamicsPtr = std::make_unique<WheelBasedMobileManipulatorDynamics>(
+                        manipulatorModelInfo_, "dynamics", libraryFolder,
+                        recompileLibraries, true);
+                }
                 break;
             }
         default:

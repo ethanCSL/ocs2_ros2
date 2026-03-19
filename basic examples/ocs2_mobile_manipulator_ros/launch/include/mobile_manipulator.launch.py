@@ -18,13 +18,21 @@ def is_wsl():
         return False
 
 
+def has_display():
+    return bool(os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY'))
+
+
 def generate_launch_description():
-    prefix = "gnome-terminal --"
-    if is_wsl():
-        prefix = "xterm -e"
-        print("Current system is WSL, use xterm as terminal")
+    prefix = ""
+    if has_display():
+        prefix = "gnome-terminal --"
+        if is_wsl():
+            prefix = "xterm -e"
+            print("Current system is WSL, use xterm as terminal")
+        else:
+            print("Current system is not WSL, use gnome-terminal as terminal")
     else:
-        print("Current system is not WSL, use gnome-terminal as terminal")
+        print("No graphical display detected, run launch nodes without terminal prefix")
 
     return LaunchDescription([
         DeclareLaunchArgument(

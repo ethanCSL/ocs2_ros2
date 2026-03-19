@@ -191,6 +191,10 @@ int main(int argc, char* argv[])
     {
         enableJoystick = false;
     }
+    catch (const rclcpp::ParameterTypeException&)
+    {
+        enableJoystick = false;
+    }
 
     bool enableAutoPosition = false;
     try
@@ -198,6 +202,10 @@ int main(int argc, char* argv[])
         enableAutoPosition = node->get_parameter("enableAutoPosition").as_bool();
     }
     catch (const rclcpp::exceptions::ParameterNotDeclaredException&)
+    {
+        enableAutoPosition = false;
+    }
+    catch (const rclcpp::ParameterTypeException&)
     {
         enableAutoPosition = false;
     }
