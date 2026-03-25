@@ -25,11 +25,16 @@ def generate_launch_description():
             name='rvizconfig',
             default_value=get_package_share_directory('ocs2_mobile_manipulator_ros') + "/rviz/mobile_manipulator.rviz"
         ),
+        launch.actions.DeclareLaunchArgument(
+            name='use_sim_time',
+            default_value='false'
+        ),
         Node(
             package="robot_state_publisher",
             executable="robot_state_publisher",
             output="screen",
             arguments=[LaunchConfiguration("urdfFile")],
+            parameters=[{'use_sim_time': LaunchConfiguration("use_sim_time")}],
         ),
         Node(
             package="joint_state_publisher_gui",
@@ -43,7 +48,8 @@ def generate_launch_description():
             name='mobile_manipulator',
             output='screen',
             condition=IfCondition(LaunchConfiguration("rviz")),
-            arguments=["-d", LaunchConfiguration("rvizconfig")]
+            arguments=["-d", LaunchConfiguration("rvizconfig")],
+            parameters=[{'use_sim_time': LaunchConfiguration("use_sim_time")}]
         )
     ])
     return ld

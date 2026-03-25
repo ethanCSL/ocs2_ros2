@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>g7_openarm_ros</name>
+  <version>0.0.1</version>
+  <description>ROS2 launch package for g7_openarm OCS2 workflows.</description>
+
+  <maintainer email="you@example.com">g7_openarm</maintainer>
+  <license>BSD-3-Clause</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>rosgraph_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>pinocchio</depend>
+  <depend>ocs2_mobile_manipulator</depend>
+  <depend>ocs2_mobile_manipulator_ros</depend>
+  <depend>ocs2_ros_interfaces</depend>
+  <depend>g7_openarm_description</depend>
+  <depend>g7_openarm_ocs2</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

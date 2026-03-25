@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="g7_openarm">
+  <compiler angle="radian" meshdir="../meshes" balanceinertia="true" discardvisual="false"/>
+  <option gravity="0 0 -9.81" timestep="0.002" integrator="implicitfast"/>
+  <statistic center="0 0 0.6" extent="2"/>
+  <visual>
+    <headlight ambient="0.45 0.45 0.45" diffuse="0.65 0.65 0.65"/>
+  </visual>
+  <asset>
+    <mesh name="AMR_base_link_mesh" file="AMR_base_link.STL"/>
+    <mesh name="AMR_FL_link_mesh" file="AMR_FL_link.STL"/>
+    <mesh name="AMR_FLW_link_mesh" file="AMR_FLW_link.STL"/>
+    <mesh name="AMR_FR_link_mesh" file="AMR_FR_link.STL"/>
+    <mesh name="AMR_FRW_link_mesh" file="AMR_FRW_link.STL"/>
+    <mesh name="AMR_RL_link_mesh" file="AMR_RL_link.STL"/>
+    <mesh name="AMR_RLW_link_mesh" file="AMR_RLW_link.STL"/>
+    <mesh name="AMR_RR_link_mesh" file="AMR_RR_link.STL"/>
+    <mesh name="AMR_RRW_link_mesh" file="AMR_RRW_link.STL"/>
+    <mesh name="openarm_base_link_mesh" file="openarm_base_link.STL"/>
+    <mesh name="chest_link_mesh" file="chest_link.STL"/>
+    <mesh name="L_link1_mesh" file="L_link1.STL"/>
+    <mesh name="L_link2_mesh" file="L_link2.STL"/>
+    <mesh name="L_link3_mesh" file="L_link3.STL"/>
+    <mesh name="L_link4_mesh" file="L_link4.STL"/>
+    <mesh name="L_link5_mesh" file="L_link5.STL"/>
+    <mesh name="L_link6_mesh" file="L_link6.STL"/>
+    <mesh name="L_link7_mesh" file="L_link7.STL"/>
+    <mesh name="gripper_LL_link_mesh" file="gripper_LL_link.STL"/>
+    <mesh name="gripper_LR_link_mesh" file="gripper_LR_link.STL"/>
+    <mesh name="R_link1_mesh" file="R_link1.STL"/>
+    <mesh name="R_link2_mesh" file="R_link2.STL"/>
+    <mesh name="R_link3_mesh" file="R_link3.STL"/>
+    <mesh name="R_link4_mesh" file="R_link4.STL"/>
+    <mesh name="R_link5_mesh" file="R_link5.STL"/>
+    <mesh name="R_link6_mesh" file="R_link6.STL"/>
+    <mesh name="R_link7_mesh" file="R_link7.STL"/>
+    <mesh name="gripper_RL_link_mesh" file="gripper_RL_link.STL"/>
+    <mesh name="gripper_RR_link_mesh" file="gripper_RR_link.STL"/>
+  </asset>
+  <default>
+    <joint damping="1" armature="0.01"/>
+    <geom friction="0.8 0.1 0.1" condim="3"/>
+    <motor ctrllimited="true"/>
+  </default>
+  <worldbody>
+    <light name="sun" pos="0 0 3" dir="0 0 -1" directional="true" diffuse="0.9 0.9 0.9"/>
+    <geom name="floor" type="plane" size="3 3 0.1" pos="0 0 -0.11" rgba="0.93 0.93 0.95 1" friction="1.0 0.1 0.1"/>
+    <camera name="front" pos="2.4 0 1.4" xyaxes="0 1 0 -0.35 0 0.94"/>
+    <camera name="isometric" pos="1.8 -1.8 1.6" xyaxes="0.707 0.707 0 -0.408 0.408 0.816"/>
+    <!-- Base z is chosen so the wheel collision cylinders just touch the floor:
+         min(wheel_center_z) = -0.1077402588, wheel_radius = 0.052, floor_z = -0.11 -->
+    <body name="AMR_base_link" pos="0 0 0.0497402588">
+      <joint name="base_x_joint" type="slide" axis="1 0 0"/>
+      <joint name="base_y_joint" type="slide" axis="0 1 0"/>
+      <joint name="base_yaw_joint" type="hinge" axis="0 0 1"/>
+      <inertial pos="-0.00420581 -9.293e-05 0.03202295" mass="40.00000000" fullinertia="1.02060130 1.65877875 2.23847353 -0.04446226 -0.01112583 -0.00073134"/>
+      <geom type="mesh" mesh="AMR_base_link_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+      <body name="AMR_FL_link" pos="0.198 0.13 -0.05524">
+        <inertial pos="0 -0.00073433 -0.04689656" mass="0.30000000" fullinertia="0.00051815 0.00039542 0.00051269 -0.0000001 -0.0000001 -0.00000672"/>
+        <geom type="mesh" mesh="AMR_FL_link_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+        <joint name="AMR_FL_joint" type="hinge" axis="0 0 1" range="-3.14159 3.14159" limited="true"/>
+        <body name="AMR_FLW_link" pos="0 0 -0.0525">
+          <inertial pos="0 0 0" mass="1.00000000" fullinertia="0.00118731 0.00219404 0.00118754 -0.0000001 -0.0000001 -0.0000001"/>
+          <geom type="mesh" mesh="AMR_FLW_link_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+          <geom name="AMR_FLW_link_collision_0" type="cylinder" group="3" size="0.052 0.0375" euler="-1.5708 0 0"/>
+          <joint name="AMR_FLW_joint" type="hinge" axis="0 1 0" range="-3.14159 3.14159" limited="true"/>
+        </body>
+      </body>
+      <body name="AMR_FR_link" pos="0.198 -0.13 -0.0552402588">
+        <inertial pos="0 0.00073437 -0.0468966" mass="0.30000000" fullinertia="0.00051815 0.00039542 0.00051269 -0.0000001 -0.0000001 0.00000672"/>
+        <geom type="mesh" mesh="AMR_FR_link_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+        <joint name="AMR_FR_joint" type="hinge" axis="0 0 1" range="-3.14159 3.14159" limited="true"/>
+        <body name="AMR_FRW_link" pos="0 0 -0.0525">
+          <inertial pos="0 0 0" mass="1.00000000" fullinertia="0.00118724 0.00219393 0.00118750 -0.0000001 0.00000001 -0.0000001"/>
+          <geom type="mesh" mesh="AMR_FRW_link_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+          <geom name="AMR_FRW_link_collision_0" type="cylinder" group="3" size="0.052 0.0375" euler="-1.5708 0 0"/>
+          <joint name="AMR_FRW_joint" type="hinge" axis="0 1 0" range="-3.14159 3.14159" limited="true"/>
+        </body>
+      </body>
+      <body name="AMR_RL_link" pos="-0.198 0.13 -0.0552402588">
+        <inertial pos="0 -0.00073434 -0.04689667" mass="0.30000000" fullinertia="0.00051815 0.00039542 0.00051269 -0.0000001 -0.0000001 -0.00000672"/>
+        <geom type="mesh" mesh="AMR_RL_link_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+        <joint name="AMR_RL_joint" type="hinge" axis="0 0 1" range="-3.14159 3.14159" limited="true"/>
+        <body name="AMR_RLW_link" pos="0 0 -0.0525">
+          <inertial pos="0 0 0" mass="1.00000000" fullinertia="0.00118724 0.00219393 0.00118750 -0.0000001 -0.00000001 -0.0000001"/>
+          <geom type="mesh" mesh="AMR_RLW_link_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+          <geom name="AMR_RLW_link_collision_0" type="cylinder" group="3" size="0.052 0.0375" euler="-1.5708 0 0"/>
+          <joint name="AMR_RLW_joint" type="hinge" axis="0 1 0" range="-3.14159 3.14159" limited="true"/>
+        </body>
+      </body>
+      <body name="AMR_RR_link" pos="-0.198 -0.13 -0.0552402588">
+        <inertial pos="0 0.00073452 -0.04689618" mass="0.30000000" fullinertia="0.00051815 0.00039542 0.00051268 -0.0000001 -0.0000001 0.00000672"/>
+        <geom type="mesh" mesh="AMR_RR_link_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+        <joint name="AMR_RR_joint" type="hinge" axis="0 0 1" range="-3.14159 3.14159" limited="true"/>
+        <body name="AMR_RRW_link" pos="0 0 -0.0525">
+          <inertial pos="0 0 0" mass="1.00000000" fullinertia="0.00118724 0.00219393 0.00118750 -0.0000001 0.00000001 -0.0000001"/>
+          <geom type="mesh" mesh="AMR_RRW_link_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+          <geom name="AMR_RRW_link_collision_0" type="cylinder" group="3" size="0.052 0.0375" euler="-1.5708 0 0"/>
+          <joint name="AMR_RRW_joint" type="hinge" axis="0 1 0" range="-3.14159 3.14159" limited="true"/>
+        </body>
+      </body>
+      <body name="openarm_base_link" pos="0 0 0.132959535">
+        <inertial pos="-0.01646506 0 0.21859446" mass="10.00000000" fullinertia="0.59631910 0.60835762 0.03755484 -0.0000001 -0.03055732 0.00000213"/>
+        <geom type="mesh" mesh="openarm_base_link_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+        <body name="chest_link" pos="0 0 0.689">
+          <inertial pos="-0.00265421 0 -0.00031617" mass="6.17600000" fullinertia="0.02956793 0.01200152 0.02910647 -0.0000001 -0.00029374 0.00000004"/>
+          <geom type="mesh" mesh="chest_link_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+          <body name="L_link1" pos="0 0.0875 0">
+            <inertial pos="0.00285795 0.06323211 -6.09e-06" mass="1.14100000" fullinertia="0.00139244 0.00104046 0.00110704 -0.00001356 -0.00000019 -0.00000029"/>
+            <geom type="mesh" mesh="L_link1_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+            <joint name="L_1_joint" type="hinge" axis="0 -1 0" range="-3.14159 3.14159" limited="true"/>
+            <body name="L_link2" pos="-0.0284 0.065 0">
+              <inertial pos="0.00301991 0 -0.0217183" mass="0.27700000" fullinertia="0.00049305 0.00048214 0.00036345 -0.0000001 0.00014151 -0.0000001"/>
+              <geom type="mesh" mesh="L_link2_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+              <joint name="L_2_joint" type="hinge" axis="1 0 0" range="-3.14159 3.14159" limited="true"/>
+              <body name="L_link3" pos="0.0284 0 -0.051">
+                <inertial pos="-0.00800186 -0.00033975 -0.05313979" mass="1.07300000" fullinertia="0.00443269 0.00413974 0.00078221 -0.00000078 -0.00015818 -0.00004081"/>
+                <geom type="mesh" mesh="L_link3_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+                <joint name="L_3_joint" type="hinge" axis="0 0 -1" range="-3.14159 3.14159" limited="true"/>
+                <body name="L_link4" pos="0 -5e-05 -0.169">
+                  <inertial pos="-0.00037734 -0.00097263 -0.00461696" mass="0.63400000" fullinertia="0.00060961 0.00047016 0.00040332 -0.00000053 -0.00001302 0.00000217"/>
+                  <geom type="mesh" mesh="L_link4_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+                  <joint name="L_4_joint" type="hinge" axis="0 1 0" range="-3.14159 3.14159" limited="true"/>
+                  <body name="L_link5" pos="0 0 -0.0955">
+                    <inertial pos="-0.00157437 0.00139758 -0.03681664" mass="0.61500000" fullinertia="0.00074540 0.00083736 0.00058462 -0.00001828 -0.00001714 0.00001295"/>
+                    <geom type="mesh" mesh="L_link5_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+                    <joint name="L_5_joint" type="hinge" axis="0 0 -1" range="-3.14159 3.14159" limited="true"/>
+                    <body name="L_link6" pos="0 0 -0.1205">
+                      <inertial pos="-0.00011822 0.00048177 9.191e-05" mass="0.47500000" fullinertia="0.00018977 0.00021208 0.00020871 -0.00000123 -0.0000001 -0.00000105"/>
+                      <geom type="mesh" mesh="L_link6_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+                      <joint name="L_6_joint" type="hinge" axis="-1 0 0" range="0 0.09" limited="true"/>
+                      <body name="L_link7" pos="0 0.03175 0">
+                        <inertial pos="-9.378e-05 -0.02922375 -0.06681711" mass="0.46500000" fullinertia="0.00050958 0.00040251 0.00028167 -0.00000011 0.00000057 -0.00006785"/>
+                        <geom type="mesh" mesh="L_link7_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+                        <joint name="L_7_joint" type="hinge" axis="0 -1 0" range="-3.14159 3.14159" limited="true"/>
+                        <body name="gripper_LL_link" pos="0 0.03075 -0.119">
+                          <inertial pos="0.00223798 -0.00193863 -0.02110105" mass="0.05000000" fullinertia="0.00002622 0.00003424 0.00001385 -0.00000021 -0.00000145 -0.00000428"/>
+                          <geom type="mesh" mesh="gripper_LL_link_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+                          <joint name="gripper_LL_joint" type="slide" axis="0 -1 0" range="0 0.04" limited="true"/>
+                        </body>
+                        <body name="gripper_LR_link" pos="0 -0.09425 -0.119">
+                          <inertial pos="-0.0011596 0.00192174 -0.02103325" mass="0.05000000" fullinertia="0.00002610 0.00003431 0.00001403 -0.00000012 0.00000170 0.00000425"/>
+                          <geom type="mesh" mesh="gripper_LR_link_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+                          <joint name="gripper_LR_joint" type="slide" axis="0 1 0" range="0 0.04" limited="true"/>
+                        </body>
+                        <body name="L_ee_link" pos="0 -0.03175 -0.119"/>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+          <body name="R_link1" pos="0 -0.0875 0">
+            <inertial pos="0.00285822 -0.06323203 6.03e-06" mass="1.14100000" fullinertia="0.00139241 0.00104046 0.00110708 0.00001354 0.00000019 -0.00000029"/>
+            <geom type="mesh" mesh="R_link1_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+            <joint name="R_1_joint" type="hinge" axis="0 -1 0" range="-3.14159 3.14159" limited="true"/>
+            <body name="R_link2" pos="-0.0284 -0.065 0">
+              <inertial pos="0.00301991 0 -0.0217183" mass="0.27700000" fullinertia="0.00049305 0.00048214 0.00036345 -0.0000001 0.00014151 -0.0000001"/>
+              <geom type="mesh" mesh="R_link2_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+              <joint name="R_2_joint" type="hinge" axis="1 0 0" range="-3.14159 3.14159" limited="true"/>
+              <body name="R_link3" pos="0.0284 0 -0.051">
+                <inertial pos="-0.00800186 -0.00033975 -0.05313979" mass="1.07300000" fullinertia="0.00443269 0.00413974 0.00078221 -0.00000078 -0.00015818 -0.00004081"/>
+                <geom type="mesh" mesh="R_link3_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+                <joint name="R_3_joint" type="hinge" axis="0 0 -1" range="-3.14159 3.14159" limited="true"/>
+                <body name="R_link4" pos="0 0 -0.169">
+                  <inertial pos="-0.00037734 -0.00102263 -0.00461696" mass="0.63400000" fullinertia="0.00060961 0.00047016 0.00040332 -0.00000053 -0.00001302 0.00000217"/>
+                  <geom type="mesh" mesh="R_link4_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+                  <joint name="R_4_joint" type="hinge" axis="0 1 0" range="-3.14159 3.14159" limited="true"/>
+                  <body name="R_link5" pos="0 0 -0.0955">
+                    <inertial pos="-0.00156592 -0.00144926 -0.03681509" mass="0.61500000" fullinertia="0.00074535 0.00083735 0.00058461 0.00001841 -0.00001717 -0.00001291"/>
+                    <geom type="mesh" mesh="R_link5_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+                    <joint name="R_5_joint" type="hinge" axis="0 0 -1" range="-3.14159 3.14159" limited="true"/>
+                    <body name="R_link6" pos="0 0 -0.1205">
+                      <inertial pos="0.00011815 -0.00053178 9.193e-05" mass="0.47500000" fullinertia="0.00018977 0.00021208 0.00020871 -0.00000123 -0.0000001 0.00000105"/>
+                      <geom type="mesh" mesh="R_link6_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+                      <joint name="R_6_joint" type="hinge" axis="-1 0 0" range="0 0.09" limited="true"/>
+                      <body name="R_link7" pos="0 -0.0318 0">
+                        <inertial pos="-9.199e-05 0.02922377 -0.0668171" mass="0.46500000" fullinertia="0.00050959 0.00040251 0.00028167 0.0000001 0.00000057 0.00006785"/>
+                        <geom type="mesh" mesh="R_link7_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+                        <joint name="R_7_joint" type="hinge" axis="0 -1 0" range="-3.14159 3.14159" limited="true"/>
+                        <body name="gripper_RL_link" pos="0 0.09425 -0.119">
+                          <inertial pos="0.00223998 -0.00193863 -0.02110105" mass="0.05000000" fullinertia="0.00002622 0.00003424 0.00001385 -0.00000021 -0.00000145 -0.00000428"/>
+                          <geom type="mesh" mesh="gripper_RL_link_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+                          <joint name="gripper_RL_joint" type="slide" axis="0 -1 0" range="0 0.04" limited="true"/>
+                        </body>
+                        <body name="gripper_RR_link" pos="0 -0.03075 -0.119">
+                          <inertial pos="-0.00115767 0.00192173 -0.02103327" mass="0.05000000" fullinertia="0.00002610 0.00003431 0.00001403 0.00000012 -0.00000170 -0.00000425"/>
+                          <geom type="mesh" mesh="gripper_RR_link_mesh" contype="0" conaffinity="0" rgba="0.79215686 0.81960784 0.93333333 1"/>
+                          <joint name="gripper_RR_joint" type="slide" axis="0 1 0" range="0 0.04" limited="true"/>
+                        </body>
+                        <body name="R_ee_link" pos="0 0.03175 -0.119"/>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <actuator>
+    <motor name="base_x_joint_act" joint="base_x_joint" gear="1" ctrlrange="-500 500" ctrllimited="true"/>
+    <motor name="base_y_joint_act" joint="base_y_joint" gear="1" ctrlrange="-500 500" ctrllimited="true"/>
+    <motor name="base_yaw_joint_act" joint="base_yaw_joint" gear="1" ctrlrange="-500 500" ctrllimited="true"/>
+    <motor name="AMR_FL_joint_act" joint="AMR_FL_joint" gear="1" ctrlrange="-200 200" forcelimited="true" forcerange="-200 200"/>
+    <motor name="AMR_FLW_joint_act" joint="AMR_FLW_joint" gear="1" ctrlrange="-200 200" forcelimited="true" forcerange="-200 200"/>
+    <motor name="AMR_FR_joint_act" joint="AMR_FR_joint" gear="1" ctrlrange="-200 200" forcelimited="true" forcerange="-200 200"/>
+    <motor name="AMR_FRW_joint_act" joint="AMR_FRW_joint" gear="1" ctrlrange="-200 200" forcelimited="true" forcerange="-200 200"/>
+    <motor name="AMR_RL_joint_act" joint="AMR_RL_joint" gear="1" ctrlrange="-200 200" forcelimited="true" forcerange="-200 200"/>
+    <motor name="AMR_RLW_joint_act" joint="AMR_RLW_joint" gear="1" ctrlrange="-200 200" forcelimited="true" forcerange="-200 200"/>
+    <motor name="AMR_RR_joint_act" joint="AMR_RR_joint" gear="1" ctrlrange="-200 200" forcelimited="true" forcerange="-200 200"/>
+    <motor name="AMR_RRW_joint_act" joint="AMR_RRW_joint" gear="1" ctrlrange="-200 200" forcelimited="true" forcerange="-200 200"/>
+    <motor name="L_1_joint_act" joint="L_1_joint" gear="1" ctrlrange="-120 120" forcelimited="true" forcerange="-120 120"/>
+    <motor name="L_2_joint_act" joint="L_2_joint" gear="1" ctrlrange="-120 120" forcelimited="true" forcerange="-120 120"/>
+    <motor name="L_3_joint_act" joint="L_3_joint" gear="1" ctrlrange="-120 120" forcelimited="true" forcerange="-120 120"/>
+    <motor name="L_4_joint_act" joint="L_4_joint" gear="1" ctrlrange="-120 120" forcelimited="true" forcerange="-120 120"/>
+    <motor name="L_5_joint_act" joint="L_5_joint" gear="1" ctrlrange="-120 120" forcelimited="true" forcerange="-120 120"/>
+    <motor name="L_6_joint_act" joint="L_6_joint" gear="1" ctrlrange="-20 20" forcelimited="true" forcerange="-20 20"/>
+    <motor name="L_7_joint_act" joint="L_7_joint" gear="1" ctrlrange="-120 120" forcelimited="true" forcerange="-120 120"/>
+    <motor name="gripper_LL_joint_act" joint="gripper_LL_joint" gear="1" ctrlrange="-80 80" forcelimited="true" forcerange="-80 80"/>
+    <motor name="gripper_LR_joint_act" joint="gripper_LR_joint" gear="1" ctrlrange="-80 80" forcelimited="true" forcerange="-80 80"/>
+    <motor name="R_1_joint_act" joint="R_1_joint" gear="1" ctrlrange="-120 120" forcelimited="true" forcerange="-120 120"/>
+    <motor name="R_2_joint_act" joint="R_2_joint" gear="1" ctrlrange="-120 120" forcelimited="true" forcerange="-120 120"/>
+    <motor name="R_3_joint_act" joint="R_3_joint" gear="1" ctrlrange="-120 120" forcelimited="true" forcerange="-120 120"/>
+    <motor name="R_4_joint_act" joint="R_4_joint" gear="1" ctrlrange="-120 120" forcelimited="true" forcerange="-120 120"/>
+    <motor name="R_5_joint_act" joint="R_5_joint" gear="1" ctrlrange="-120 120" forcelimited="true" forcerange="-120 120"/>
+    <motor name="R_6_joint_act" joint="R_6_joint" gear="1" ctrlrange="-20 20" forcelimited="true" forcerange="-20 20"/>
+    <motor name="R_7_joint_act" joint="R_7_joint" gear="1" ctrlrange="-120 120" forcelimited="true" forcerange="-120 120"/>
+    <motor name="gripper_RL_joint_act" joint="gripper_RL_joint" gear="1" ctrlrange="-80 80" forcelimited="true" forcerange="-80 80"/>
+    <motor name="gripper_RR_joint_act" joint="gripper_RR_joint" gear="1" ctrlrange="-80 80" forcelimited="true" forcerange="-80 80"/>
+  </actuator>
+  <keyframe>
+    <key name="home" qpos="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"/>
+  </keyframe>
+</mujoco>

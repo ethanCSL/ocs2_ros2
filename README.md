@@ -2,18 +2,18 @@
 
 ## Quick Start For This Fork
 
-This fork adds a `g5_openarm` workflow on top of the ROS 2 OCS2 port, including:
+This fork adds a `g7_openarm` workflow on top of the ROS 2 OCS2 port, including:
 
-- `g5_openarm` robot description, launch files, and RViz config
+- `g7_openarm` robot description, launch files, and RViz config
 - a switchable PinnZoo-backed wheel-based dynamics backend for `ocs2_mobile_manipulator`
-- a ready-to-use `g5_openarm_pinnzoo.launch.py` entrypoint
+- a ready-to-use `g7_openarm_pinnzoo.launch.py` entrypoint
 
 Companion PinnZoo repository:
 
 - `https://github.com/ethanCSL/PinnZoo.git`
 - branch: `g7-openarm`
 
-Fastest path to run `g5_openarm`:
+Fastest path to run `g7_openarm`:
 
 ```bash
 cd ~/ros2_ws/src
@@ -31,13 +31,18 @@ source /opt/ros/humble/setup.bash
 colcon build --packages-select \
   ocs2_mobile_manipulator \
   ocs2_mobile_manipulator_ros \
-  g5_openarm_description \
-  g5_openarm_ocs2 \
-  g5_openarm_ros
+  g7_openarm_description \
+  g7_openarm_ocs2 \
+  g7_openarm_ros
 source ~/ros2_ws/install/setup.bash
 export PINNZOO_LIBRARY_PATH=~/PinnZoo/build/libg7_openarm_quat.so
-ros2 launch g5_openarm_ros g5_openarm_pinnzoo.launch.py
+ros2 launch g7_openarm_ros g7_openarm_pinnzoo.launch.py
 ```
+
+MuJoCo closed-loop note:
+
+- `ros2 launch g7_openarm_ros g7_openarm.launch.py` now starts a MuJoCo plant with OCS2 as controller
+- the practical startup and tuning guide is in `g7_openarm/README.md`, section `MuJoCo Closed-Loop Quick Start`
 
 ## 1. Summary
 
@@ -114,9 +119,9 @@ cd ~/ros2_ws
 rosdep install --from-paths src --ignore-src -r -y
 ```
 
-### 2.4 g5_openarm + PinnZoo quick start
+### 2.4 g7_openarm + PinnZoo quick start
 
-This fork includes a `g5_openarm` integration that can switch the wheel-based mobile manipulator dynamics from the native OCS2 implementation to a PinnZoo-generated shared library.
+This fork includes a `g7_openarm` integration that can switch the wheel-based mobile manipulator dynamics from the native OCS2 implementation to a PinnZoo-generated shared library.
 
 Clone and build PinnZoo separately:
 
@@ -139,9 +144,9 @@ AMENT_PYTHON_EXECUTABLE=/usr/bin/python3 PYTHON_EXECUTABLE=/usr/bin/python3 \
   colcon build --packages-select \
     ocs2_mobile_manipulator \
     ocs2_mobile_manipulator_ros \
-    g5_openarm_description \
-    g5_openarm_ocs2 \
-    g5_openarm_ros
+    g7_openarm_description \
+    g7_openarm_ocs2 \
+    g7_openarm_ros
 source ~/ros2_ws/install/setup.bash
 ```
 
@@ -149,7 +154,7 @@ Export the PinnZoo library path and launch:
 
 ```bash
 export PINNZOO_LIBRARY_PATH=~/PinnZoo/build/libg7_openarm_quat.so
-ros2 launch g5_openarm_ros g5_openarm_pinnzoo.launch.py
+ros2 launch g7_openarm_ros g7_openarm_pinnzoo.launch.py
 ```
 
-The detailed robot-specific guide is in `g5_openarm/README.md`.
+The detailed robot-specific guide is in `g7_openarm/README.md`.

@@ -131,7 +131,9 @@ namespace ocs2::mobile_manipulator
         const SystemObservation& observation, const PrimalSolution& policy,
         const CommandData& command)
     {
-        const rclcpp::Time timeStamp = node_->get_clock()->now();
+        const auto nanoseconds =
+            static_cast<int64_t>(std::llround(observation.time * 1.0e9));
+        const rclcpp::Time timeStamp(nanoseconds, RCL_ROS_TIME);
 
         publishObservation(timeStamp, observation);
         publishTargetTrajectories(timeStamp, command.mpcTargetTrajectories_);
@@ -162,7 +164,7 @@ namespace ocs2::mobile_manipulator
         // publish joints transforms
         const auto j_arm = getArmJointAngles(observation.state, modelInfo_);
         sensor_msgs::msg::JointState joint_state;
-        joint_state.header.stamp = node_->get_clock()->now();
+        joint_state.header.stamp = timeStamp;
         const auto dofNames_count = modelInfo_.dofNames.size();
         const auto joint_count = dofNames_count + removeJointNames_.size();
         joint_state.name.resize(joint_count);
