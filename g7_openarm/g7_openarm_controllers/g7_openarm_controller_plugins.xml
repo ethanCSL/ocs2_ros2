@@ -1,0 +1,19 @@
+<library path="g7_openarm_controllers">
+  <class
+    name="g7_openarm_controllers/G7OpenarmPolicyController"
+    type="g7_openarm_controllers::G7OpenarmPolicyController"
+    base_class_type="controller_interface::ControllerInterface">
+    <description>
+      Phase 2 skeleton controller that will later consume /mobile_manipulator_mpc_policy.
+    </description>
+  </class>
+
+  <class
+    name="g7_openarm_controllers/G7OpenarmObservationBroadcaster"
+    type="g7_openarm_controllers::G7OpenarmObservationBroadcaster"
+    base_class_type="controller_interface::ControllerInterface">
+    <description>
+      Phase 2 skeleton broadcaster that will later publish OCS2 observation and MuJoCo debug topics.
+    </description>
+  </class>
+</library>

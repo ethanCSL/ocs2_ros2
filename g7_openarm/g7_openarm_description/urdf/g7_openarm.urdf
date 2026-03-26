@@ -1033,7 +1033,7 @@
     type="fixed">
     <!-- Virtual tool frame placed at the center of the left gripper opening. -->
     <origin
-      xyz="0 -0.03175 -0.119"
+      xyz="0 -0.03175 -0.135"
       rpy="0 0 0" />
     <parent
       link="L_link7" />
@@ -1529,7 +1529,7 @@
     type="fixed">
     <!-- Virtual tool frame placed at the center of the right gripper opening. -->
     <origin
-      xyz="0 0.03175 -0.119"
+      xyz="0 0.03175 -0.135"
       rpy="0 0 0" />
     <parent
       link="R_link7" />

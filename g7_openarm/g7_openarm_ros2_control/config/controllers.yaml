@@ -1,0 +1,26 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    g7_openarm_policy_controller:
+      type: g7_openarm_controllers/G7OpenarmPolicyController
+
+    g7_openarm_observation_broadcaster:
+      type: g7_openarm_controllers/G7OpenarmObservationBroadcaster
+
+g7_openarm_policy_controller:
+  ros__parameters:
+    policy_topic: /mobile_manipulator_mpc_policy
+
+g7_openarm_observation_broadcaster:
+  ros__parameters:
+    mpc_observation_topic: /mobile_manipulator_mpc_observation
+    debug_observation_topic: /mujoco/debug_observation
+    debug_input_topic: /mujoco/debug_input
+    debug_base_pose_topic: /mujoco/debug_base_pose
+    clock_topic: /clock
+    world_frame: world
+    base_frame: AMR_base_link

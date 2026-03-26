@@ -1,0 +1,162 @@
+  <ros2_control name="g7_openarm_ros2_control_system" type="system">
+    <hardware>
+      <plugin>g7_openarm_hardware_interface/G7OpenarmMujocoSystem</plugin>
+      <param name="phase">2_skeleton</param>
+      <param name="mjcf_file">__MJCF_FILE__</param>
+      <param name="dt_sim">__DT_SIM__</param>
+      <param name="base_linear_kv">__BASE_LINEAR_KV__</param>
+      <param name="base_yaw_kv">__BASE_YAW_KV__</param>
+      <param name="arm_joint_kv">__ARM_JOINT_KV__</param>
+    </hardware>
+
+    <gpio name="mobile_base">
+      <command_interface name="forward_velocity"/>
+      <command_interface name="yaw_rate"/>
+      <state_interface name="x"/>
+      <state_interface name="y"/>
+      <state_interface name="yaw"/>
+      <state_interface name="forward_velocity"/>
+      <state_interface name="yaw_rate"/>
+      <state_interface name="command_forward_velocity"/>
+      <state_interface name="command_yaw_rate"/>
+    </gpio>
+
+    <gpio name="simulation">
+      <state_interface name="sim_time"/>
+    </gpio>
+
+    <joint name="AMR_FL_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="AMR_FLW_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="AMR_FR_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="AMR_FRW_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="AMR_RL_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="AMR_RLW_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="AMR_RR_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="AMR_RRW_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="gripper_LL_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="gripper_LR_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="gripper_RL_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="gripper_RR_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="L_1_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="command_velocity"/>
+    </joint>
+    <joint name="L_2_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="command_velocity"/>
+    </joint>
+    <joint name="L_3_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="command_velocity"/>
+    </joint>
+    <joint name="L_4_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="command_velocity"/>
+    </joint>
+    <joint name="L_5_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="command_velocity"/>
+    </joint>
+    <joint name="L_6_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="command_velocity"/>
+    </joint>
+    <joint name="L_7_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="command_velocity"/>
+    </joint>
+
+    <joint name="R_1_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="command_velocity"/>
+    </joint>
+    <joint name="R_2_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="command_velocity"/>
+    </joint>
+    <joint name="R_3_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="command_velocity"/>
+    </joint>
+    <joint name="R_4_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="command_velocity"/>
+    </joint>
+    <joint name="R_5_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="command_velocity"/>
+    </joint>
+    <joint name="R_6_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="command_velocity"/>
+    </joint>
+    <joint name="R_7_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="command_velocity"/>
+    </joint>
+  </ros2_control>

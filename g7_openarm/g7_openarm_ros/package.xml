@@ -9,8 +9,11 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <depend>geometry_msgs</depend>
+  <depend>ocs2_msgs</depend>
   <depend>rclcpp</depend>
   <depend>rosgraph_msgs</depend>
+  <depend>std_msgs</depend>
   <depend>std_srvs</depend>
   <depend>pinocchio</depend>
   <depend>ocs2_mobile_manipulator</depend>

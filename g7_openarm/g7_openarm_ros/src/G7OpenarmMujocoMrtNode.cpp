@@ -4,12 +4,16 @@
 #include <ocs2_mobile_manipulator/MobileManipulatorInterface.h>
 #include <ocs2_mobile_manipulator/MobileManipulatorPinocchioMapping.h>
 #include <ocs2_mobile_manipulator_ros/MobileManipulatorDummyVisualization.h>
+#include <ocs2_ros_interfaces/common/RosMsgConversions.h>
 #include <ocs2_ros_interfaces/mrt/MRT_ROS_Interface.h>
 
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <ocs2_msgs/msg/mpc_observation.hpp>
 #include <pinocchio/algorithm/frames.hpp>
 #include <pinocchio/algorithm/kinematics.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rosgraph_msgs/msg/clock.hpp>
+#include <std_msgs/msg/float64_multi_array.hpp>
 #include <std_srvs/srv/trigger.hpp>
 
 #include <algorithm>
@@ -129,7 +133,13 @@ public:
 
         mrt_.launchNodes(node_);
         clockPublisher_ =
-            node_->create_publisher<rosgraph_msgs::msg::Clock>("/clock", 10);
+            node_->create_publisher<rosgraph_msgs::msg::Clock>("/clock", rclcpp::ClockQoS());
+        debugObservationPublisher_ =
+            node_->create_publisher<ocs2_msgs::msg::MpcObservation>("/mujoco/debug_observation", 10);
+        debugInputPublisher_ =
+            node_->create_publisher<std_msgs::msg::Float64MultiArray>("/mujoco/debug_input", 10);
+        debugBasePosePublisher_ =
+            node_->create_publisher<geometry_msgs::msg::PoseStamped>("/mujoco/debug_base_pose", 10);
 
         resetService_ = node_->create_service<std_srvs::srv::Trigger>(
             "mujoco_reset",
@@ -187,8 +197,11 @@ public:
             }
 
             lastAppliedInput_ = optimizedInput;
-            currentObservation_ = buildObservation(currentObservation_.time + dtCtrl_, plannedMode);
+            currentObservation_ =
+                buildObservation(currentObservation_.time + dtCtrl_, plannedMode);
+            recordSimulationTime(currentObservation_.time);
             publishClock(currentObservation_.time);
+            publishDebugTopics(currentObservation_);
             ++controlCycleCount_;
             if (controlCycleCount_ % 100 == 0)
             {
@@ -219,6 +232,49 @@ private:
         rosgraph_msgs::msg::Clock clockMsg;
         clockMsg.clock = toRosTime(simulationTime);
         clockPublisher_->publish(clockMsg);
+    }
+
+    void publishDebugTopics(const SystemObservation& observation) const
+    {
+        debugObservationPublisher_->publish(
+            ocs2::ros_msg_conversions::createObservationMsg(observation));
+
+        std_msgs::msg::Float64MultiArray inputMsg;
+        inputMsg.data.resize(static_cast<size_t>(lastServoInput_.size()));
+        for (Eigen::Index i = 0; i < lastServoInput_.size(); ++i)
+        {
+            inputMsg.data[static_cast<size_t>(i)] = lastServoInput_(i);
+        }
+        debugInputPublisher_->publish(inputMsg);
+
+        geometry_msgs::msg::PoseStamped basePoseMsg;
+        basePoseMsg.header.stamp = toRosTime(observation.time);
+        basePoseMsg.header.frame_id = "world";
+        basePoseMsg.pose.position.x = observation.state(0);
+        basePoseMsg.pose.position.y = observation.state(1);
+        basePoseMsg.pose.position.z = 0.0;
+        const Eigen::Quaternion<scalar_t> baseOrientation(
+            Eigen::AngleAxis<scalar_t>(observation.state(2), Eigen::Matrix<scalar_t, 3, 1>::UnitZ()));
+        basePoseMsg.pose.orientation.w = baseOrientation.w();
+        basePoseMsg.pose.orientation.x = baseOrientation.x();
+        basePoseMsg.pose.orientation.y = baseOrientation.y();
+        basePoseMsg.pose.orientation.z = baseOrientation.z();
+        debugBasePosePublisher_->publish(basePoseMsg);
+    }
+
+    scalar_t getNextResetObservationTime() const
+    {
+        if (!simulationTimeInitialized_)
+        {
+            return 0.0;
+        }
+        return latestPublishedSimulationTime_ + dtCtrl_;
+    }
+
+    void recordSimulationTime(scalar_t simulationTime)
+    {
+        latestPublishedSimulationTime_ = simulationTime;
+        simulationTimeInitialized_ = true;
     }
 
     void validateTiming()
@@ -421,9 +477,11 @@ private:
 
         lastAppliedInput_ = vector_t::Zero(interface_.getManipulatorModelInfo().inputDim);
         lastServoInput_ = lastAppliedInput_;
-        currentObservation_ = buildObservation(0.0, 0);
+        currentObservation_ = buildObservation(getNextResetObservationTime(), 0);
         controlCycleCount_ = 0;
+        recordSimulationTime(currentObservation_.time);
         publishClock(currentObservation_.time);
+        publishDebugTopics(currentObservation_);
 
         const TargetTrajectories initTargetTrajectories =
             createCurrentTargetTrajectories(currentObservation_.time, currentObservation_.state);
@@ -623,8 +681,13 @@ private:
     bool pendingReset_ = false;
     rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr resetService_;
     rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr clockPublisher_;
+    rclcpp::Publisher<ocs2_msgs::msg::MpcObservation>::SharedPtr debugObservationPublisher_;
+    rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr debugInputPublisher_;
+    rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr debugBasePosePublisher_;
     size_t controlCycleCount_ = 0;
     scalar_t lastAcceptedPolicyTime_ = 0.0;
+    scalar_t latestPublishedSimulationTime_ = 0.0;
+    bool simulationTimeInitialized_ = false;
 };
 } // namespace
 

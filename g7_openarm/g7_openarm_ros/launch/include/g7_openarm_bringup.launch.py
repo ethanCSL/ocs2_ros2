@@ -1,8 +1,9 @@
 import os
 
 import launch
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from ament_index_python.packages import get_package_share_directory
+from launch.substitutions import LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 
@@ -64,7 +65,7 @@ def generate_launch_description():
         ),
         launch.actions.DeclareLaunchArgument(
             name='baseLinearKv',
-            default_value='250.0'
+            default_value='200.0'
         ),
         launch.actions.DeclareLaunchArgument(
             name='baseYawKv',
@@ -72,21 +73,30 @@ def generate_launch_description():
         ),
         launch.actions.DeclareLaunchArgument(
             name='armJointKv',
-            default_value='20.0'
+            default_value='2.33'
         ),
-        launch.actions.IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                os.path.join(
-                    get_package_share_directory('ocs2_mobile_manipulator_ros'),
-                    'launch/include/visualize.launch.py',
-                )
-            ),
-            launch_arguments={
-                'urdfFile': launch.substitutions.LaunchConfiguration('urdfFile'),
-                'rviz': launch.substitutions.LaunchConfiguration('rviz'),
-                'rvizconfig': launch.substitutions.LaunchConfiguration('rvizconfig'),
-                'use_sim_time': 'true',
-            }.items(),
+        launch.actions.DeclareLaunchArgument(
+            name='useLegacyMrtExecution',
+            default_value='false'
+        ),
+        Node(
+            package="robot_state_publisher",
+            executable="robot_state_publisher",
+            output="screen",
+            arguments=[LaunchConfiguration('urdfFile')],
+            parameters=[{
+                'use_sim_time': True,
+                'ignore_timestamp': True,
+            }],
+        ),
+        Node(
+            package='rviz2',
+            executable='rviz2',
+            name='mobile_manipulator',
+            output='screen',
+            condition=IfCondition(LaunchConfiguration('rviz')),
+            arguments=["-d", LaunchConfiguration('rvizconfig')],
+            parameters=[{'use_sim_time': True}]
         ),
         Node(
             package='ocs2_mobile_manipulator_ros',
@@ -108,10 +118,55 @@ def generate_launch_description():
                 }
             ]
         ),
+        launch.actions.IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(
+                    get_package_share_directory('g7_openarm_ros2_control'),
+                    'launch/g7_openarm_ros2_control.launch.py',
+                )
+            ),
+            condition=UnlessCondition(LaunchConfiguration('useLegacyMrtExecution')),
+            launch_arguments={
+                'dt_sim': LaunchConfiguration('dtSim'),
+                'base_linear_kv': LaunchConfiguration('baseLinearKv'),
+                'base_yaw_kv': LaunchConfiguration('baseYawKv'),
+                'arm_joint_kv': LaunchConfiguration('armJointKv'),
+                'start_robot_state_publisher': 'false',
+                'use_sim_time': 'true',
+            }.items(),
+        ),
+        Node(
+            package='g7_openarm_ros2_control',
+            executable='g7_openarm_mpc_reset_coordinator',
+            name='g7_openarm_mpc_reset_coordinator',
+            condition=UnlessCondition(LaunchConfiguration('useLegacyMrtExecution')),
+            output='screen',
+            parameters=[
+                {
+                    'taskFile': launch.substitutions.LaunchConfiguration('taskFile')
+                },
+                {
+                    'urdfFile': launch.substitutions.LaunchConfiguration('urdfFile')
+                },
+                {
+                    'libFolder': launch.substitutions.LaunchConfiguration('libFolder')
+                },
+                {
+                    'observation_topic': '/mobile_manipulator_mpc_observation'
+                },
+                {
+                    'reset_service': '/mobile_manipulator_mpc_reset'
+                },
+                {
+                    'use_sim_time': True
+                }
+            ]
+        ),
         Node(
             package='g7_openarm_ros',
             executable='g7_openarm_mujoco_mrt_node',
             name='g7_openarm_mujoco_mrt',
+            condition=IfCondition(LaunchConfiguration('useLegacyMrtExecution')),
             output='screen',
             parameters=[
                 {

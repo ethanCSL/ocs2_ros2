@@ -86,6 +86,11 @@ def generate_launch_description():
             default_value='20.0',
             description='Velocity-servo gain for arm joints.'
         ),
+        launch.actions.DeclareLaunchArgument(
+            name='useLegacyMrtExecution',
+            default_value='false',
+            description='Whether to use the legacy G7OpenarmMujocoMrtNode direct execution path.'
+        ),
         launch.actions.IncludeLaunchDescription(
             launch.launch_description_sources.PythonLaunchDescriptionSource(
                 os.path.join(
@@ -109,6 +114,7 @@ def generate_launch_description():
                 'baseLinearKv': launch.substitutions.LaunchConfiguration('baseLinearKv'),
                 'baseYawKv': launch.substitutions.LaunchConfiguration('baseYawKv'),
                 'armJointKv': launch.substitutions.LaunchConfiguration('armJointKv'),
+                'useLegacyMrtExecution': launch.substitutions.LaunchConfiguration('useLegacyMrtExecution'),
             }.items(),
         ),
     ])

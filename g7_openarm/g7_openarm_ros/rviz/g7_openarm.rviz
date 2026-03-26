@@ -68,7 +68,7 @@ Visualization Manager:
       Mass Properties:
         Inertia: false
         Mass: false
-      Name: RobotModel
+      Name: MuJoCo Truth RobotModel
       TF Prefix: ""
       Update Interval: 0
       Value: true
@@ -89,7 +89,7 @@ Visualization Manager:
       Value: false
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: MarkerArray
+      Name: Self Collision Distances
       Namespaces:
         {}
       Topic:
@@ -108,7 +108,7 @@ Visualization Manager:
       Enabled: true
       Head Length: 0.07000000029802322
       Head Radius: 0.029999999329447746
-      Name: PoseArray
+      Name: OCS2 Preview Pose Trajectory
       Shaft Length: 0.23000000417232513
       Shaft Radius: 0.009999999776482582
       Shape: Axes

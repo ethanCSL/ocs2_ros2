@@ -5,8 +5,11 @@ project(g7_openarm_ros)
 set(CMAKE_BUILD_TYPE Release)
 
 set(dependencies
+        geometry_msgs
+        ocs2_msgs
         rclcpp
         rosgraph_msgs
+        std_msgs
         std_srvs
         pinocchio
         ocs2_mobile_manipulator
@@ -16,8 +19,11 @@ set(dependencies
 
 find_package(ament_cmake REQUIRED)
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
+find_package(geometry_msgs REQUIRED)
+find_package(ocs2_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rosgraph_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(pinocchio REQUIRED)
 find_package(ocs2_mobile_manipulator REQUIRED)

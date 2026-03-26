@@ -1,0 +1,10 @@
+<library path="g7_openarm_hardware_interface">
+  <class
+    name="g7_openarm_hardware_interface/G7OpenarmMujocoSystem"
+    type="g7_openarm_hardware_interface::G7OpenarmMujocoSystem"
+    base_class_type="hardware_interface::SystemInterface">
+    <description>
+      Phase 2 ros2_control skeleton for the future MuJoCo-backed g7_openarm SystemInterface.
+    </description>
+  </class>
+</library>
