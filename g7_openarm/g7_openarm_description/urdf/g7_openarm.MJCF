@@ -7,6 +7,23 @@
     <headlight ambient="0.45 0.45 0.45" diffuse="0.65 0.65 0.65"/>
   </visual>
   <asset>
+    <texture
+      name="groundplane_texture"
+      type="2d"
+      builtin="checker"
+      rgb1="0.34 0.38 0.44"
+      rgb2="0.18 0.2 0.24"
+      width="512"
+      height="512"
+      mark="edge"
+      markrgb="0.42 0.47 0.55"/>
+    <material
+      name="groundplane"
+      texture="groundplane_texture"
+      texrepeat="8 8"
+      texuniform="true"
+      reflectance="0.03"
+      shininess="0.05"/>
     <mesh name="AMR_base_link_mesh" file="AMR_base_link.STL"/>
     <mesh name="AMR_FL_link_mesh" file="AMR_FL_link.STL"/>
     <mesh name="AMR_FLW_link_mesh" file="AMR_FLW_link.STL"/>
@@ -44,7 +61,13 @@
   </default>
   <worldbody>
     <light name="sun" pos="0 0 3" dir="0 0 -1" directional="true" diffuse="0.9 0.9 0.9"/>
-    <geom name="floor" type="plane" size="3 3 0.1" pos="0 0 -0.11" rgba="0.93 0.93 0.95 1" friction="1.0 0.1 0.1"/>
+    <geom
+      name="floor"
+      type="plane"
+      size="0 0 0.05"
+      pos="0 0 -0.11"
+      material="groundplane"
+      friction="1.0 0.1 0.1"/>
     <camera name="front" pos="2.4 0 1.4" xyaxes="0 1 0 -0.35 0 0.94"/>
     <camera name="isometric" pos="1.8 -1.8 1.6" xyaxes="0.707 0.707 0 -0.408 0.408 0.816"/>
     <!-- Base z is chosen so the wheel collision cylinders just touch the floor:

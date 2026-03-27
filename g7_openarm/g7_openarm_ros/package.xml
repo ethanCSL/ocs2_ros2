@@ -16,6 +16,7 @@
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
   <depend>pinocchio</depend>
+  <depend>rclpy</depend>
   <depend>ocs2_mobile_manipulator</depend>
   <depend>ocs2_mobile_manipulator_ros</depend>
   <depend>ocs2_ros_interfaces</depend>

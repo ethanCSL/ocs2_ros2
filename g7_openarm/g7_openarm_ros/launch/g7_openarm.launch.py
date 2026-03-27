@@ -23,10 +23,10 @@ def generate_launch_description():
             description='URDF used by robot_state_publisher and RViz.'
         ),
         launch.actions.DeclareLaunchArgument(
-            name='mjcfFile',
+            name='viewerMjcfFile',
             default_value=get_package_share_directory(
-                'g7_openarm_description') + '/urdf/g7_openarm.MJCF',
-            description='MuJoCo MJCF used by the closed-loop simulator.'
+                'g7_openarm_description') + '/urdf/g7_openarm_viewer_scene.xml',
+            description='MuJoCo MJCF used by the viewer scene.'
         ),
         launch.actions.DeclareLaunchArgument(
             name='taskFile',
@@ -45,6 +45,11 @@ def generate_launch_description():
             default_value=get_package_share_directory(
                 'g7_openarm_ros') + '/rviz/g7_openarm.rviz',
             description='RViz layout to load.'
+        ),
+        launch.actions.DeclareLaunchArgument(
+            name='mujocoViewer',
+            default_value='true',
+            description='Whether to open the MuJoCo viewer.'
         ),
         launch.actions.DeclareLaunchArgument(
             name='enableJoystick',
@@ -67,11 +72,6 @@ def generate_launch_description():
             description='MuJoCo simulation timestep.'
         ),
         launch.actions.DeclareLaunchArgument(
-            name='dtCtrl',
-            default_value='0.01',
-            description='Closed-loop control timestep.'
-        ),
-        launch.actions.DeclareLaunchArgument(
             name='baseLinearKv',
             default_value='200.0',
             description='Velocity-servo gain for base planar joints.'
@@ -86,11 +86,6 @@ def generate_launch_description():
             default_value='2.33',
             description='Velocity-servo gain for arm joints.'
         ),
-        launch.actions.DeclareLaunchArgument(
-            name='useLegacyMrtExecution',
-            default_value='false',
-            description='Whether to use the legacy G7OpenarmMujocoMrtNode direct execution path.'
-        ),
         launch.actions.IncludeLaunchDescription(
             launch.launch_description_sources.PythonLaunchDescriptionSource(
                 os.path.join(
@@ -102,19 +97,18 @@ def generate_launch_description():
                 'rviz': launch.substitutions.LaunchConfiguration('rviz'),
                 'debug': launch.substitutions.LaunchConfiguration('debug'),
                 'urdfFile': launch.substitutions.LaunchConfiguration('urdfFile'),
-                'mjcfFile': launch.substitutions.LaunchConfiguration('mjcfFile'),
+                'viewerMjcfFile': launch.substitutions.LaunchConfiguration('viewerMjcfFile'),
                 'taskFile': launch.substitutions.LaunchConfiguration('taskFile'),
                 'libFolder': launch.substitutions.LaunchConfiguration('libFolder'),
                 'rvizconfig': launch.substitutions.LaunchConfiguration('rvizconfig'),
+                'mujocoViewer': launch.substitutions.LaunchConfiguration('mujocoViewer'),
                 'enableJoystick': launch.substitutions.LaunchConfiguration('enableJoystick'),
                 'enableAutoPosition': launch.substitutions.LaunchConfiguration('enableAutoPosition'),
                 'enableDynamicFrame': launch.substitutions.LaunchConfiguration('enableDynamicFrame'),
                 'dtSim': launch.substitutions.LaunchConfiguration('dtSim'),
-                'dtCtrl': launch.substitutions.LaunchConfiguration('dtCtrl'),
                 'baseLinearKv': launch.substitutions.LaunchConfiguration('baseLinearKv'),
                 'baseYawKv': launch.substitutions.LaunchConfiguration('baseYawKv'),
                 'armJointKv': launch.substitutions.LaunchConfiguration('armJointKv'),
-                'useLegacyMrtExecution': launch.substitutions.LaunchConfiguration('useLegacyMrtExecution'),
             }.items(),
         ),
     ])

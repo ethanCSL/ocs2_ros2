@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="g7_openarm_viewer_scene">
+  <include file="g7_openarm.MJCF"/>
+
+  <visual>
+    <headlight ambient="0.18 0.18 0.18" diffuse="0.55 0.55 0.55" specular="0.08 0.08 0.08"/>
+    <rgba haze="0.86 0.9 0.96 1"/>
+    <global azimuth="135" elevation="-20"/>
+    <quality shadowsize="1024"/>
+    <map znear="0.01" zfar="30" fogstart="10" fogend="24"/>
+  </visual>
+
+  <asset>
+    <texture
+      name="skybox"
+      type="skybox"
+      builtin="gradient"
+      rgb1="0.9 0.94 0.99"
+      rgb2="0.32 0.44 0.62"
+      width="512"
+      height="3072"/>
+  </asset>
+
+  <worldbody>
+    <light name="viewer_key" pos="2.5 -1.5 4.5" dir="-0.3 0.2 -1" directional="true" diffuse="0.8 0.82 0.85"/>
+    <light name="viewer_fill" pos="-2.0 2.5 3.5" dir="0.2 -0.3 -1" directional="true" diffuse="0.28 0.32 0.38"/>
+    <camera name="viewer_isometric" pos="2.9 -2.6 1.95" xyaxes="0.667 0.745 0 -0.42 0.376 0.826"/>
+    <camera name="viewer_side" pos="3.0 0.0 1.35" xyaxes="0 1 0 -0.28 0 0.96"/>
+  </worldbody>
+</mujoco>

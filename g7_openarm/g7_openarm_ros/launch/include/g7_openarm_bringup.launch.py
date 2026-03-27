@@ -1,7 +1,7 @@
 import os
 
 import launch
-from launch.conditions import IfCondition, UnlessCondition
+from launch.conditions import IfCondition
 from ament_index_python.packages import get_package_share_directory
 from launch.substitutions import LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -24,9 +24,9 @@ def generate_launch_description():
                 'g7_openarm_description') + '/urdf/g7_openarm.urdf'
         ),
         launch.actions.DeclareLaunchArgument(
-            name='mjcfFile',
+            name='viewerMjcfFile',
             default_value=get_package_share_directory(
-                'g7_openarm_description') + '/urdf/g7_openarm.MJCF'
+                'g7_openarm_description') + '/urdf/g7_openarm_viewer_scene.xml'
         ),
         launch.actions.DeclareLaunchArgument(
             name='taskFile',
@@ -42,6 +42,10 @@ def generate_launch_description():
             name='rvizconfig',
             default_value=get_package_share_directory(
                 'g7_openarm_ros') + '/rviz/g7_openarm.rviz'
+        ),
+        launch.actions.DeclareLaunchArgument(
+            name='mujocoViewer',
+            default_value='true'
         ),
         launch.actions.DeclareLaunchArgument(
             name='enableJoystick',
@@ -60,10 +64,6 @@ def generate_launch_description():
             default_value='0.001'
         ),
         launch.actions.DeclareLaunchArgument(
-            name='dtCtrl',
-            default_value='0.01'
-        ),
-        launch.actions.DeclareLaunchArgument(
             name='baseLinearKv',
             default_value='200.0'
         ),
@@ -74,10 +74,6 @@ def generate_launch_description():
         launch.actions.DeclareLaunchArgument(
             name='armJointKv',
             default_value='2.33'
-        ),
-        launch.actions.DeclareLaunchArgument(
-            name='useLegacyMrtExecution',
-            default_value='false'
         ),
         Node(
             package="robot_state_publisher",
@@ -97,6 +93,24 @@ def generate_launch_description():
             condition=IfCondition(LaunchConfiguration('rviz')),
             arguments=["-d", LaunchConfiguration('rvizconfig')],
             parameters=[{'use_sim_time': True}]
+        ),
+        Node(
+            package='g7_openarm_ros',
+            executable='g7_openarm_mujoco_viewer.py',
+            name='g7_openarm_mujoco_viewer',
+            output='screen',
+            condition=IfCondition(LaunchConfiguration('mujocoViewer')),
+            parameters=[
+                {
+                    'mjcfFile': launch.substitutions.LaunchConfiguration('viewerMjcfFile')
+                },
+                {
+                    'observation_topic': '/mobile_manipulator_mpc_observation'
+                },
+                {
+                    'camera_name': 'viewer_isometric'
+                }
+            ]
         ),
         Node(
             package='ocs2_mobile_manipulator_ros',
@@ -125,7 +139,6 @@ def generate_launch_description():
                     'launch/g7_openarm_ros2_control.launch.py',
                 )
             ),
-            condition=UnlessCondition(LaunchConfiguration('useLegacyMrtExecution')),
             launch_arguments={
                 'dt_sim': LaunchConfiguration('dtSim'),
                 'base_linear_kv': LaunchConfiguration('baseLinearKv'),
@@ -139,7 +152,6 @@ def generate_launch_description():
             package='g7_openarm_ros2_control',
             executable='g7_openarm_mpc_reset_coordinator',
             name='g7_openarm_mpc_reset_coordinator',
-            condition=UnlessCondition(LaunchConfiguration('useLegacyMrtExecution')),
             output='screen',
             parameters=[
                 {
@@ -156,45 +168,6 @@ def generate_launch_description():
                 },
                 {
                     'reset_service': '/mobile_manipulator_mpc_reset'
-                },
-                {
-                    'use_sim_time': True
-                }
-            ]
-        ),
-        Node(
-            package='g7_openarm_ros',
-            executable='g7_openarm_mujoco_mrt_node',
-            name='g7_openarm_mujoco_mrt',
-            condition=IfCondition(LaunchConfiguration('useLegacyMrtExecution')),
-            output='screen',
-            parameters=[
-                {
-                    'taskFile': launch.substitutions.LaunchConfiguration('taskFile')
-                },
-                {
-                    'urdfFile': launch.substitutions.LaunchConfiguration('urdfFile')
-                },
-                {
-                    'mjcfFile': launch.substitutions.LaunchConfiguration('mjcfFile')
-                },
-                {
-                    'libFolder': launch.substitutions.LaunchConfiguration('libFolder')
-                },
-                {
-                    'dtSim': launch.substitutions.LaunchConfiguration('dtSim')
-                },
-                {
-                    'dtCtrl': launch.substitutions.LaunchConfiguration('dtCtrl')
-                },
-                {
-                    'baseLinearKv': launch.substitutions.LaunchConfiguration('baseLinearKv')
-                },
-                {
-                    'baseYawKv': launch.substitutions.LaunchConfiguration('baseYawKv')
-                },
-                {
-                    'armJointKv': launch.substitutions.LaunchConfiguration('armJointKv')
                 },
                 {
                     'use_sim_time': True
