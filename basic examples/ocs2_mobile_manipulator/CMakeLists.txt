@@ -34,8 +34,6 @@ add_library(${PROJECT_NAME}
         src/MobileManipulatorPinocchioMapping.cpp
         src/constraint/EndEffectorConstraint.cpp
         src/constraint/BodyRelativeConstraint.cpp
-        src/dynamics/PinnzooInterface.cpp
-        src/dynamics/PinnzooWheelBasedMobileManipulatorDynamics.cpp
         src/dynamics/WheelBasedMobileManipulatorDynamics.cpp
         src/dynamics/DefaultManipulatorDynamics.cpp
         src/dynamics/FloatingArmManipulatorDynamics.cpp
@@ -49,7 +47,6 @@ target_include_directories(${PROJECT_NAME}
         "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 
 ament_target_dependencies(${PROJECT_NAME} ${dependencies})
-target_link_libraries(${PROJECT_NAME} dl)
 
 #############
 ## Install ##

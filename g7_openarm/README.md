@@ -1,12 +1,113 @@
+
 # g7_openarm
 
-`g7_openarm` is the mobile-manipulator integration layer for this ROS 2 Humble + OCS2 workspace.
+`g7_openarm` is the mobile-manipulator bringup in this ROS 2 OCS2 workspace.
 
-The runtime path in this package is:
+Runtime path:
 
 `OCS2 MPC -> ros2_control -> g7_openarm_hardware_interface -> MuJoCo`
 
-This README is intended to match the workspace under `/root/ocs2_ws/src/g7_openarm`.
+## Supported Environment
+
+- Ubuntu 22.04
+- ROS 2 Humble
+- Python 3.10
+- MuJoCo Python package installed in the same Python environment used for build and launch
+
+## Workspace Setup
+
+Create a workspace and clone the repository:
+
+```bash
+cd ~
+mkdir -p ros2_ws/src
+cd ~/ros2_ws/src
+git clone https://github.com/ethanCSL/ocs2_ros2.git
+cd ocs2_ros2
+git submodule update --init --recursive
+```
+
+Install dependencies:
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/humble/setup.bash
+rosdep install --from-paths src --ignore-src -r -y
+sudo apt-get install -y python3-pip
+python3 -m pip install --user mujoco
+python3 -c "import mujoco; print(mujoco.__version__)"
+```
+
+The `mujoco` Python package is required. Without it, `g7_openarm_hardware_interface` will not configure or build.
+
+## Build
+
+Build the packages needed for the default bringup:
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/humble/setup.bash
+colcon build --packages-up-to g7_openarm_ros g7_openarm_ros2_control --symlink-install
+source ~/ros2_ws/install/setup.bash
+```
+
+If you only want to rebuild the bringup-related packages after the workspace already built once:
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/humble/setup.bash
+source ~/ros2_ws/install/setup.bash
+colcon build --packages-select \
+  g7_openarm_hardware_interface \
+  g7_openarm_controllers \
+  g7_openarm_ros2_control \
+  g7_openarm_ros \
+  --symlink-install
+source ~/ros2_ws/install/setup.bash
+```
+
+## Launch
+
+Default bringup:
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/humble/setup.bash
+source ~/ros2_ws/install/setup.bash
+ros2 launch g7_openarm_ros g7_openarm.launch.py
+```
+
+Headless bringup:
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/humble/setup.bash
+source ~/ros2_ws/install/setup.bash
+ros2 launch g7_openarm_ros g7_openarm.launch.py rviz:=false mujocoViewer:=false
+```
+
+The headless command is the safest first validation on a new machine.
+
+## Expected Bringup Result
+
+After startup settles, the following should happen:
+
+- `g7_openarm_policy_controller` loads and activates
+- `g7_openarm_observation_broadcaster` loads and activates
+- `g7_openarm_mpc_reset_coordinator` completes the initial MPC reset
+- `/mobile_manipulator_mpc_observation` is publishing
+- `/joint_states`, `/tf`, and `/clock` keep updating
+- RViz shows the robot model when `rviz:=true`
+- The passive MuJoCo viewer follows the observation state when `mujocoViewer:=true`
+
+Useful checks:
+
+```bash
+source /opt/ros/humble/setup.bash
+source ~/ros2_ws/install/setup.bash
+ros2 topic list | rg "mobile_manipulator_mpc_observation|joint_states|clock"
+ros2 control list_controllers
+```
 
 ## Package Layout
 
@@ -22,51 +123,6 @@ This README is intended to match the workspace under `/root/ocs2_ws/src/g7_opena
   MuJoCo-backed hardware plugin used by `ros2_control`.
 - `g7_openarm_controllers`
   Policy controller and observation broadcaster.
-
-## Quick Start
-
-```bash
-cd /root/ocs2_ws
-source /opt/ros/humble/setup.bash
-colcon build --symlink-install --packages-up-to g7_openarm_ros g7_openarm_ros2_control
-source install/setup.bash
-ros2 launch g7_openarm_ros g7_openarm.launch.py
-```
-
-After startup settles, the usual signs of life are:
-
-- `/mobile_manipulator_mpc_observation` is publishing.
-- `/joint_states`, `/tf`, and `/clock` keep updating.
-- RViz shows the robot model.
-- If `mujocoViewer:=true`, the MuJoCo viewer follows the observation state.
-
-## Common Launch Commands
-
-Build:
-```
-cd /root/ocs2_ws
-colcon build --packages-select g7_openarm_description g7_openarm_ros g7_openarm_ros2_control g7_openarm_controllers g7_openarm_hardware_interface --symlink-install
-source /root/ocs2_ws/install/setup.bash
-```
-
-Default bringup:
-
-```bash
-ros2 launch g7_openarm_ros g7_openarm.launch.py
-```
-
-Headless bringup:
-
-```bash
-ros2 launch g7_openarm_ros g7_openarm.launch.py rviz:=false mujocoViewer:=false
-```
-
-PinnZoo-backed task(test):
-
-```bash
-export PINNZOO_LIBRARY_PATH=/abs/path/to/libg7_openarm_quat.so
-ros2 launch g7_openarm_ros g7_openarm_pinnzoo.launch.py
-```
 
 ## Runtime Architecture
 
@@ -90,10 +146,8 @@ ros2 launch g7_openarm_ros g7_openarm_pinnzoo.launch.py
 
 - `g7_openarm_ros/launch/g7_openarm.launch.py`
   Default bringup entry point.
-- `g7_openarm_ros/launch/g7_openarm_pinnzoo.launch.py`
-  Bringup entry point using `task_pinnzoo.info`.
 - `g7_openarm_ros/launch/include/g7_openarm_bringup.launch.py`
-  Shared launch graph used by both top-level launch files.
+  Shared launch graph used by the top-level launch file.
 - `g7_openarm_ros2_control/launch/g7_openarm_ros2_control.launch.py`
   Starts `ros2_control_node` and spawns the controllers.
 - `g7_openarm_description/urdf/g7_openarm.urdf`
@@ -105,21 +159,7 @@ ros2 launch g7_openarm_ros g7_openarm_pinnzoo.launch.py
 - `g7_openarm_ros/scripts/g7_openarm_mujoco_viewer.py`
   Observation-driven MuJoCo viewer.
 
-## Important Topics And Services
-
-- Policy input: `/mobile_manipulator_mpc_policy`
-- Observation feedback: `/mobile_manipulator_mpc_observation`
-- Reset service: `/mobile_manipulator_mpc_reset`
-- Sim time: `/clock`
-- RViz joint state input: `/joint_states`
-- Debug observation: `/mujoco/debug_observation`
-- Debug input: `/mujoco/debug_input`
-- Debug base pose: `/mujoco/debug_base_pose`
-- Base TF root: `world -> AMR_base_link`
-
 ## Launch Arguments You Will Likely Touch
-
-From `g7_openarm.launch.py`:
 
 - `rviz`
   Open RViz.
@@ -144,71 +184,32 @@ From `g7_openarm.launch.py`:
 - `enableDynamicFrame`
   Choose the target marker frame from the task file.
 
-## Build And Environment Notes
+## Notes
 
-Expected environment:
-
-- Ubuntu 22.04
-- ROS 2 Humble
-- Python MuJoCo package available in the same shell used for build and launch
-- `controller_manager`, `robot_state_publisher`, and `rviz2` installed
-
-Useful setup flow:
-
-```bash
-cd /root/ocs2_ws
-source /opt/ros/humble/setup.bash
-rosdep update
-rosdep install --from-paths src --ignore-src -r -y
-python3 -c "import mujoco; print(mujoco.__file__)"
-```
-
-If the MuJoCo import fails, `g7_openarm_ros` and `g7_openarm_hardware_interface` will not configure correctly.
-
-## PinnZoo Notes
-
-`g7_openarm_pinnzoo.launch.py` uses:
-
-- `g7_openarm_ocs2/config/g7_openarm/task_pinnzoo.info`
-- `PINNZOO_LIBRARY_PATH`
-
-Expected usage:
-
-```bash
-export PINNZOO_LIBRARY_PATH=/abs/path/to/libg7_openarm_quat.so
-ros2 launch g7_openarm_ros g7_openarm_pinnzoo.launch.py
-```
-
-If `PINNZOO_LIBRARY_PATH` is unset or points to the wrong library, the PinnZoo path will not start correctly.
-
-## Viewer Notes
-
-`g7_openarm_mujoco_viewer.py` does not run the simulation itself. It subscribes to `/mobile_manipulator_mpc_observation` and updates a separate viewer scene from that state.
-
-That means:
-
+- The first launch can take longer because OCS2 may generate and compile helper libraries under `g7_openarm_ocs2/auto_generated/g7_openarm`.
+- `g7_openarm_mujoco_viewer.py` is only a viewer. It does not run the simulation itself.
 - `g7_openarm.MJCF` is the runtime simulation model.
-- `g7_openarm_viewer_scene.xml` is the visualization scene for the passive viewer.
-- If `/mobile_manipulator_mpc_observation` stops updating, the viewer will appear frozen.
+- `g7_openarm_viewer_scene.xml` is the visualization scene used by the passive viewer.
 
 ## Troubleshooting
 
-If RViz is open but the robot looks frozen:
+If build fails before compiling `g7_openarm_hardware_interface`:
 
-- Check `/clock`, `/joint_states`, and `/tf`.
-- Check whether `/mobile_manipulator_mpc_observation` is still publishing.
+- Check `python3 -c "import mujoco; print(mujoco.__file__)"`
+- Make sure the same shell can both `import mujoco` and run `colcon build`
+
+If bringup starts but motion never begins:
+
+- Check whether `g7_openarm_observation_broadcaster` is active
+- Check whether `/mobile_manipulator_mpc_observation` is publishing
+- Check whether `/mobile_manipulator_mpc_reset` is available
+
+If RViz opens but the robot looks frozen:
+
+- Check `/clock`, `/joint_states`, and `/tf`
+- Check whether `/mobile_manipulator_mpc_observation` is still publishing
 
 If the MuJoCo viewer opens but does not move:
 
-- Check whether the viewer is using the expected `viewerMjcfFile`.
-- Check whether `/mobile_manipulator_mpc_observation` has valid messages.
-
-If the first motion never starts:
-
-- Watch `g7_openarm_mpc_reset_coordinator`.
-- Make sure `/mobile_manipulator_mpc_reset` is available.
-
-If build fails around generated libraries:
-
-- Rebuild with `--packages-up-to g7_openarm_ros g7_openarm_ros2_control`.
-- The first launch can take longer because OCS2 may generate and compile helper libraries under `g7_openarm_ocs2/auto_generated/g7_openarm`.
+- Check whether `/mobile_manipulator_mpc_observation` is updating
+- Check whether the viewer is using the expected `viewerMjcfFile`
